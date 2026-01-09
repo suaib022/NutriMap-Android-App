@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255041796061",
+    "project_id": "nutrimap-e1e2a",
+    "storage_bucket": "nutrimap-e1e2a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255041796061:android:183d1d014020b10d7ea834",
+        "android_client_info": {
+          "package_name": "com.example.nutrimap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpnKC8fKmtwyWfP_EOxR_Wji4aqGZsu6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
