@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- Home / Dashboard -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.nutrimap.ui.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home" />
+
+    <!-- Children List -->
+    <fragment
+        android:id="@+id/childrenFragment"
+        android:name="com.example.nutrimap.ui.children.ChildrenFragment"
+        android:label="@string/nav_children"
+        tools:layout="@layout/fragment_children">
+        <action
+            android:id="@+id/action_children_to_createChild"
+            app:destination="@id/createChildFragment" />
+        <action
+            android:id="@+id/action_children_to_childProfile"
+            app:destination="@id/childProfileFragment" />
+    </fragment>
+
+    <!-- Create/Edit Child -->
+    <fragment
+        android:id="@+id/createChildFragment"
+        android:name="com.example.nutrimap.ui.createchild.CreateChildFragment"
+        android:label="@string/create_child_title"
+        tools:layout="@layout/fragment_create_child">
+        <argument
+            android:name="childId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <!-- Child Profile -->
+    <fragment
+        android:id="@+id/childProfileFragment"
+        android:name="com.example.nutrimap.ui.childprofile.ChildProfileFragment"
+        android:label="@string/child_profile_title"
+        tools:layout="@layout/fragment_child_profile">
+        <argument
+            android:name="childId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_childProfile_to_createVisit"
+            app:destination="@id/createVisitFragment" />
+        <action
+            android:id="@+id/action_childProfile_to_editChild"
+            app:destination="@id/createChildFragment" />
+    </fragment>
+
+    <!-- Visits List -->
+    <fragment
+        android:id="@+id/visitsFragment"
+        android:name="com.example.nutrimap.ui.visits.VisitsFragment"
+        android:label="@string/nav_visits"
+        tools:layout="@layout/fragment_visits">
+        <action
+            android:id="@+id/action_visits_to_createVisit"
+            app:destination="@id/createVisitFragment" />
+    </fragment>
+
+    <!-- Create/Edit Visit -->
+    <fragment
+        android:id="@+id/createVisitFragment"
+        android:name="com.example.nutrimap.ui.createvisit.CreateVisitFragment"
+        android:label="@string/create_visit_title"
+        tools:layout="@layout/fragment_create_visit">
+        <argument
+            android:name="childId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="visitId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <!-- Users List -->
+    <fragment
+        android:id="@+id/usersFragment"
+        android:name="com.example.nutrimap.ui.users.UsersFragment"
+        android:label="@string/nav_users"
+        tools:layout="@layout/fragment_users" />
+
+    <!-- Branches List -->
+    <fragment
+        android:id="@+id/branchesFragment"
+        android:name="com.example.nutrimap.ui.branches.BranchesFragment"
+        android:label="@string/nav_branches"
+        tools:layout="@layout/fragment_branches" />
+
+    <!-- Profile -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.nutrimap.ui.profile.ProfileFragment"
+        android:label="@string/nav_profile"
+        tools:layout="@layout/fragment_profile" />
+
+</navigation>

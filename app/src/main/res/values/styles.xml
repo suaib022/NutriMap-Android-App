@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ==================== TEXT STYLES ==================== -->
+
+    <!-- Base text appearance -->
+    <style name="TextAppearance.NutriMap" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Headline1" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Headline2" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Headline3" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Title" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Subtitle" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/colorTextSecondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Body" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Caption" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/colorTextSecondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.NutriMap.Overline" parent="TextAppearance.NutriMap">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/colorTextSecondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.1</item>
+    </style>
+
+    <!-- ==================== CARD STYLES ==================== -->
+
+    <style name="Widget.NutriMap.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/colorCardBackground</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="Widget.NutriMap.StatCard" parent="Widget.NutriMap.Card">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">6dp</item>
+    </style>
+
+    <!-- ==================== BUTTON STYLES ==================== -->
+
+    <style name="Widget.NutriMap.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/colorButtonPrimary</item>
+        <item name="android:textColor">@color/colorTextOnPrimary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Widget.NutriMap.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/colorPrimary</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Widget.NutriMap.Button.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- ==================== INPUT STYLES ==================== -->
+
+    <style name="Widget.NutriMap.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/colorInputFocused</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="hintTextColor">@color/colorPrimary</item>
+    </style>
+
+    <style name="Widget.NutriMap.TextInputLayout.Filled" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="boxBackgroundColor">@color/colorInputBackground</item>
+        <item name="boxStrokeColor">@color/colorInputFocused</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+    </style>
+
+    <style name="Widget.NutriMap.Spinner" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+
+    <!-- ==================== CHIP STYLES ==================== -->
+
+    <style name="Widget.NutriMap.Chip.Risk" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipCornerRadius">12dp</item>
+        <item name="chipMinHeight">28dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.NutriMap.Chip.Risk.High" parent="Widget.NutriMap.Chip.Risk">
+        <item name="chipBackgroundColor">@color/colorRiskHighBackground</item>
+        <item name="android:textColor">@color/colorRiskHigh</item>
+    </style>
+
+    <style name="Widget.NutriMap.Chip.Risk.Medium" parent="Widget.NutriMap.Chip.Risk">
+        <item name="chipBackgroundColor">@color/colorRiskMediumBackground</item>
+        <item name="android:textColor">@color/colorRiskMedium</item>
+    </style>
+
+    <style name="Widget.NutriMap.Chip.Risk.Low" parent="Widget.NutriMap.Chip.Risk">
+        <item name="chipBackgroundColor">@color/colorRiskLowBackground</item>
+        <item name="android:textColor">@color/colorRiskLow</item>
+    </style>
+
+    <!-- ==================== FAB STYLES ==================== -->
+
+    <style name="Widget.NutriMap.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/colorFab</item>
+        <item name="tint">@color/colorFabIcon</item>
+    </style>
+
+    <!-- ==================== TOOLBAR STYLES ==================== -->
+
+    <style name="Widget.NutriMap.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="titleTextColor">@color/colorTextOnPrimary</item>
+    </style>
+
+    <!-- ==================== SECTION HEADER ==================== -->
+
+    <style name="Widget.NutriMap.SectionHeader" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <!-- ==================== SEARCH BAR ==================== -->
+
+    <style name="Widget.NutriMap.SearchView" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/colorSurface</item>
+        <item name="boxCornerRadiusTopStart">24dp</item>
+        <item name="boxCornerRadiusTopEnd">24dp</item>
+        <item name="boxCornerRadiusBottomStart">24dp</item>
+        <item name="boxCornerRadiusBottomEnd">24dp</item>
+        <item name="boxStrokeWidth">0dp</item>
+    </style>
+
+    <!-- ==================== DIALOG ==================== -->
+
+    <style name="Theme.NutriMap.Dialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.NutriMap.Dialog</item>
+    </style>
+
+    <style name="ShapeAppearance.NutriMap.Dialog" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+</resources>

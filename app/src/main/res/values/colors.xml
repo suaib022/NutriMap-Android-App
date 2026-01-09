@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Teal/Green Healthcare Theme -->
+    <color name="colorPrimary">#00897B</color>
+    <color name="colorPrimaryDark">#00695C</color>
+    <color name="colorPrimaryLight">#4DB6AC</color>
+    <color name="colorAccent">#FF6F00</color>
+
+    <!-- Secondary Colors -->
+    <color name="colorSecondary">#26A69A</color>
+    <color name="colorSecondaryDark">#00796B</color>
+
+    <!-- Background Colors -->
+    <color name="colorBackground">#F5F7FA</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorSurfaceVariant">#E8F5E9</color>
+
+    <!-- Text Colors -->
+    <color name="colorTextPrimary">#212121</color>
+    <color name="colorTextSecondary">#757575</color>
+    <color name="colorTextHint">#9E9E9E</color>
+    <color name="colorTextOnPrimary">#FFFFFF</color>
+    <color name="colorTextOnDark">#FFFFFF</color>
+
+    <!-- Risk Level Colors -->
+    <color name="colorRiskHigh">#E53935</color>
+    <color name="colorRiskHighBackground">#FFEBEE</color>
+    <color name="colorRiskMedium">#FB8C00</color>
+    <color name="colorRiskMediumBackground">#FFF3E0</color>
+    <color name="colorRiskLow">#43A047</color>
+    <color name="colorRiskLowBackground">#E8F5E9</color>
+
+    <!-- Status Colors -->
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorWarning">#FF9800</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorInfo">#2196F3</color>
+
+    <!-- Card & Divider Colors -->
+    <color name="colorCardBackground">#FFFFFF</color>
+    <color name="colorDivider">#E0E0E0</color>
+    <color name="colorCardShadow">#1A000000</color>
+
+    <!-- Input Colors -->
+    <color name="colorInputBackground">#F5F5F5</color>
+    <color name="colorInputBorder">#E0E0E0</color>
+    <color name="colorInputFocused">#00897B</color>
+
+    <!-- Stats Card Colors -->
+    <color name="colorStatChildren">#29B6F6</color>
+    <color name="colorStatChildrenBg">#E1F5FE</color>
+    <color name="colorStatVisits">#AB47BC</color>
+    <color name="colorStatVisitsBg">#F3E5F5</color>
+
+    <!-- Drawer Colors -->
+    <color name="colorDrawerHeader">#00897B</color>
+    <color name="colorDrawerBackground">#FFFFFF</color>
+    <color name="colorDrawerItem">#424242</color>
+    <color name="colorDrawerItemSelected">#00897B</color>
+
+    <!-- Button Colors -->
+    <color name="colorButtonPrimary">#00897B</color>
+    <color name="colorButtonSecondary">#26A69A</color>
+    <color name="colorButtonDisabled">#BDBDBD</color>
+
+    <!-- FAB Colors -->
+    <color name="colorFab">#00897B</color>
+    <color name="colorFabIcon">#FFFFFF</color>
+
+    <!-- Transparency -->
+    <color name="colorOverlay">#80000000</color>
+    <color name="colorTransparent">#00000000</color>
+
+    <!-- Legacy/Compatibility -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Chart Colors -->
+    <color name="colorChart1">#00897B</color>
+    <color name="colorChart2">#26A69A</color>
+    <color name="colorChart3">#4DB6AC</color>
+    <color name="colorChart4">#80CBC4</color>
+    <color name="colorChart5">#B2DFDB</color>
+</resources>
