@@ -340,9 +340,9 @@ public class ChildrenFragment extends Fragment implements ChildAdapter.OnChildAc
             String lowerQuery = query.toLowerCase();
             List<Child> searchFiltered = new ArrayList<>();
             for (Child c : children) {
-                if (c.getName().toLowerCase().contains(lowerQuery) ||
-                        c.getFatherName().toLowerCase().contains(lowerQuery) ||
-                        c.getMotherName().toLowerCase().contains(lowerQuery)) {
+                if (c.getFullName().toLowerCase().contains(lowerQuery) ||
+                        c.getFathersName().toLowerCase().contains(lowerQuery) ||
+                        c.getMothersName().toLowerCase().contains(lowerQuery)) {
                     searchFiltered.add(c);
                 }
             }

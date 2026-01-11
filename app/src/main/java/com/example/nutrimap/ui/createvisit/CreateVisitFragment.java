@@ -73,7 +73,7 @@ public class CreateVisitFragment extends Fragment {
 
                 for (int i = 0; i < children.size(); i++) {
                     Child c = children.get(i);
-                    names.add(c.getName());
+                    names.add(c.getFullName());
                     if (c.getDocumentId() != null && c.getDocumentId().equals(childDocumentId)) {
                         selectedIndex = i;
                     }
@@ -124,31 +124,80 @@ public class CreateVisitFragment extends Fragment {
         });
     }
 
-    private void updateRiskDisplay(String muacStr) {
-        if (muacStr.isEmpty()) {
+    private void updateRiskDisplay(String unused) {
+        // We trigger based on any text change, so 'unused' param isn't strictly needed if we read all fields.
+        // But to be efficient we might wait.
+        
+        String weightStr = binding.editTextWeight.getText().toString().trim();
+        String heightStr = binding.editTextHeight.getText().toString().trim();
+        String muacStr = binding.editTextMuac.getText().toString().trim();
+        
+        if (weightStr.isEmpty() || heightStr.isEmpty() || muacStr.isEmpty() || childDocumentId.isEmpty()) {
             binding.cardRiskLevel.setVisibility(View.GONE);
             return;
         }
 
         try {
+            double weight = Double.parseDouble(weightStr);
+            double height = Double.parseDouble(heightStr);
             int muac = Integer.parseInt(muacStr);
-            String risk = NutritionRiskCalculator.calculateRiskFromMuac(muac);
+            
+            Child child = getSelectedChild();
+            if (child == null) return;
+            
+            // Create temp visit for calculation
+            Visit tempVisit = new Visit();
+            tempVisit.setVisitDate(binding.editTextDate.getText().toString());
+            tempVisit.setWeightKg(weight);
+            tempVisit.setHeightCm(height);
+            tempVisit.setMuacMm(muac);
+            
+            // Calculate without previous visit (Trend analysis skipped for live preview)
+            NutritionRiskCalculator.RiskResult result = NutritionRiskCalculator.evaluateFromVisitData(tempVisit, null, child);
             
             binding.cardRiskLevel.setVisibility(View.VISIBLE);
-            binding.textViewRiskLevel.setText(risk);
-            binding.textViewRiskLevel.setBackgroundResource(NutritionRiskCalculator.getRiskBackgroundResource(risk));
-            binding.textViewRiskLevel.setTextColor(ContextCompat.getColor(requireContext(),
-                    NutritionRiskCalculator.getRiskTextColorResource(risk)));
+            binding.textViewRiskLevel.setText(result.riskLevel.toUpperCase());
+            
+            int colorRes = R.color.colorRiskNA;
+            int bgRes = R.color.colorSurfaceVariant; // Default
+            
+            switch (result.riskLevel.toLowerCase()) {
+                case "high":
+                    colorRes = R.color.colorRiskHigh;
+                    bgRes = R.color.colorRiskHighBackground;
+                    break;
+                case "medium":
+                    colorRes = R.color.colorRiskMedium;
+                    bgRes = R.color.colorRiskMediumBackground;
+                    break;
+                case "low":
+                    colorRes = R.color.colorRiskLow;
+                    bgRes = R.color.colorRiskLowBackground;
+                    break;
+            }
+            
+            binding.textViewRiskLevel.setTextColor(ContextCompat.getColor(requireContext(), colorRes));
+            binding.cardRiskLevel.setCardBackgroundColor(ContextCompat.getColor(requireContext(), bgRes));
+
         } catch (NumberFormatException e) {
             binding.cardRiskLevel.setVisibility(View.GONE);
         }
     }
 
-    private void setupSaveButton() {
-        binding.buttonSave.setOnClickListener(v -> saveVisit());
+    private Child getSelectedChild() {
+        for (Child c : children) {
+            if (c.getDocumentId() != null && c.getDocumentId().equals(childDocumentId)) {
+                return c;
+            }
+        }
+        return null;
     }
 
-    private void saveVisit() {
+    private void setupSaveButton() {
+        binding.buttonSave.setOnClickListener(v -> initiateSave());
+    }
+
+    private void initiateSave() {
         if (childDocumentId == null || childDocumentId.isEmpty()) {
             Toast.makeText(requireContext(), "Please select a child", Toast.LENGTH_SHORT).show();
             return;
@@ -157,8 +206,9 @@ public class CreateVisitFragment extends Fragment {
         String weightStr = binding.editTextWeight.getText().toString().trim();
         String heightStr = binding.editTextHeight.getText().toString().trim();
         String muacStr = binding.editTextMuac.getText().toString().trim();
+        String dateStr = binding.editTextDate.getText().toString().trim();
 
-        if (weightStr.isEmpty() || heightStr.isEmpty() || muacStr.isEmpty()) {
+        if (weightStr.isEmpty() || heightStr.isEmpty() || muacStr.isEmpty() || dateStr.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill all measurements", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -171,53 +221,105 @@ public class CreateVisitFragment extends Fragment {
             Visit visit = new Visit(
                     0,
                     0,
-                    binding.editTextDate.getText().toString(),
+                    dateStr,
                     weight,
                     height,
                     muac,
-                    binding.editTextNotes.getText().toString().trim()
+                    binding.editTextNotes.getText().toString().trim(),
+                    "N/A", null, null, null, false
             );
             visit.setChildDocumentId(childDocumentId);
-
             if (!visitDocumentId.isEmpty()) {
                 visit.setDocumentId(visitDocumentId);
-                VisitRepository.getInstance().updateVisit(visit, new VisitRepository.OperationCallback() {
-                    @Override
-                    public void onSuccess() {
-                        if (getContext() != null) {
-                            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
-                            Navigation.findNavController(requireView()).popBackStack();
-                        }
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        if (getContext() != null) {
-                            Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            } else {
-                VisitRepository.getInstance().addVisit(visit, new VisitRepository.VisitCallback() {
-                    @Override
-                    public void onSuccess(Visit newVisit) {
-                        if (getContext() != null) {
-                            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
-                            Navigation.findNavController(requireView()).popBackStack();
-                        }
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        if (getContext() != null) {
-                            Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
             }
+
+            // Fetch previous visits to calculate risk with trend
+            VisitRepository.getInstance().getVisitsForChild(childDocumentId, new VisitRepository.VisitsCallback() {
+                @Override
+                public void onSuccess(List<Visit> visits) {
+                    processRiskAndSave(visit, visits);
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(requireContext(), "Error fetching history: " + message, Toast.LENGTH_SHORT).show();
+                    // Fallback to saving without trend? Or fail? 
+                    // Better to try saving without previous visit data to avoid blocking user.
+                    processRiskAndSave(visit, new ArrayList<>());
+                }
+            });
 
         } catch (NumberFormatException e) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void processRiskAndSave(Visit currentVisit, List<Visit> history) {
+        Child child = getSelectedChild();
+        if (child == null) return; // Should not happen
+
+        Visit previousVisit = null;
+        // Find previous visit: latest one BEFORE currentVisit.date
+        // If editing, exclude self.
+        
+        String currentDate = currentVisit.getVisitDate();
+        Visit bestPrev = null;
+        
+        for (Visit v : history) {
+            // Skip if it is the current visit being edited
+            if (visitDocumentId != null && !visitDocumentId.isEmpty() && 
+                v.getDocumentId() != null && v.getDocumentId().equals(visitDocumentId)) {
+                continue;
+            }
+            
+            // Allow same date? Spec says "Previous visit". Usually means < date. 
+            // If multiple on same day, logic is ambiguous. Assume one per day or use logic < date.
+            if (v.getVisitDate().compareTo(currentDate) < 0) {
+                if (bestPrev == null || v.getVisitDate().compareTo(bestPrev.getVisitDate()) > 0) {
+                    bestPrev = v;
+                }
+            }
+        }
+        previousVisit = bestPrev;
+
+        NutritionRiskCalculator.RiskResult result = NutritionRiskCalculator.evaluateFromVisitData(currentVisit, previousVisit, child);
+        currentVisit.setRiskLevel(result.riskLevel);
+        
+        // Now save
+        if (!visitDocumentId.isEmpty()) {
+            VisitRepository.getInstance().updateVisit(currentVisit, new VisitRepository.OperationCallback() {
+                @Override
+                public void onSuccess() {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                        Navigation.findNavController(requireView()).popBackStack();
+                    }
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } else {
+            VisitRepository.getInstance().addVisit(currentVisit, new VisitRepository.VisitCallback() {
+                @Override
+                public void onSuccess(Visit newVisit) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                        Navigation.findNavController(requireView()).popBackStack();
+                    }
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
     }
 

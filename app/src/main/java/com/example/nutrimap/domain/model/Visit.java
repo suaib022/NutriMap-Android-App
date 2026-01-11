@@ -11,9 +11,16 @@ public class Visit {
     private int muacMm;
     private String notes;
 
+    private String riskLevel = "N/A";
+    private String createdAt;
+    private String updatedAt;
+    private Integer enteredBy;
+    private boolean deleted = false;
+
     public Visit() {}
 
-    public Visit(int id, int childId, String visitDate, double weightKg, double heightCm, int muacMm, String notes) {
+    public Visit(int id, int childId, String visitDate, double weightKg, double heightCm, int muacMm, String notes,
+                 String riskLevel, String createdAt, String updatedAt, Integer enteredBy, boolean deleted) {
         this.id = id;
         this.childId = childId;
         this.visitDate = visitDate;
@@ -21,6 +28,11 @@ public class Visit {
         this.heightCm = heightCm;
         this.muacMm = muacMm;
         this.notes = notes;
+        this.riskLevel = riskLevel != null ? riskLevel : "N/A";
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.enteredBy = enteredBy;
+        this.deleted = deleted;
     }
 
     // Getters and Setters
@@ -50,4 +62,19 @@ public class Visit {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getEnteredBy() { return enteredBy; }
+    public void setEnteredBy(Integer enteredBy) { this.enteredBy = enteredBy; }
+
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

@@ -180,10 +180,10 @@ public class CreateChildFragment extends Fragment {
             public void onSuccess(Child child) {
                 existingChild = child;
                 if (binding != null) {
-                    binding.editTextName.setText(child.getName());
-                    binding.editTextFatherName.setText(child.getFatherName());
-                    binding.editTextMotherName.setText(child.getMotherName());
-                    binding.editTextContact.setText(child.getContact());
+                    binding.editTextName.setText(child.getFullName());
+                    binding.editTextFatherName.setText(child.getFathersName());
+                    binding.editTextMotherName.setText(child.getMothersName());
+                    binding.editTextContact.setText(child.getContactNumber());
                     binding.editTextDob.setText(child.getDateOfBirth());
                     binding.spinnerGender.setText(child.getGender(), false);
                     
@@ -221,13 +221,19 @@ public class CreateChildFragment extends Fragment {
                 binding.editTextFatherName.getText().toString().trim(),
                 binding.editTextMotherName.getText().toString().trim(),
                 binding.editTextContact.getText().toString().trim(),
+                binding.spinnerDivision.getText().toString(),
+                binding.spinnerDistrict.getText().toString(),
+                binding.spinnerUpazila.getText().toString(),
+                binding.spinnerUnion.getText().toString(),
+                "1",
+                "Default Branch",
+                "",
                 binding.spinnerGender.getText().toString(),
                 binding.editTextDob.getText().toString(),
                 selectedDivisionId != null ? selectedDivisionId : "1",
                 selectedDistrictId != null ? selectedDistrictId : "1",
                 selectedUpazilaId != null ? selectedUpazilaId : "1",
-                selectedUnionId != null ? selectedUnionId : "1",
-                "1"
+                selectedUnionId != null ? selectedUnionId : "1"
         );
 
         if (!childDocumentId.isEmpty() && existingChild != null) {

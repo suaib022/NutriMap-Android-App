@@ -125,9 +125,9 @@ public class ChildRepository {
                 String lowerQuery = query.toLowerCase();
                 List<Child> result = new ArrayList<>();
                 for (Child c : children) {
-                    if (c.getName().toLowerCase().contains(lowerQuery) ||
-                            c.getFatherName().toLowerCase().contains(lowerQuery) ||
-                            c.getMotherName().toLowerCase().contains(lowerQuery)) {
+                    if (c.getFullName().toLowerCase().contains(lowerQuery) ||
+                            c.getFathersName().toLowerCase().contains(lowerQuery) ||
+                            c.getMothersName().toLowerCase().contains(lowerQuery)) {
                         result.add(c);
                     }
                 }
@@ -190,11 +190,11 @@ public class ChildRepository {
                         int lowRisk = 0;
 
                         for (Child c : children) {
-                            String risk = getRiskLevelFromVisits(c.getDocumentId(), visits);
-                            switch (risk) {
-                                case "High": highRisk++; break;
-                                case "Medium": mediumRisk++; break;
-                                case "Low": lowRisk++; break;
+                            String risk = getRiskLevelFromVisits(c, visits);
+                            switch (risk.toLowerCase()) {
+                                case "high": highRisk++; break;
+                                case "medium": mediumRisk++; break;
+                                case "low": lowRisk++; break;
                             }
                         }
                         callback.onSuccess(new DashboardStats(total, highRisk, mediumRisk, lowRisk));
@@ -215,17 +215,25 @@ public class ChildRepository {
         });
     }
 
-    private String getRiskLevelFromVisits(String childDocumentId, List<Visit> allVisits) {
-        Visit latest = null;
+    private String getRiskLevelFromVisits(Child child, List<Visit> allVisits) {
+        String childDocumentId = child.getDocumentId();
+        List<Visit> childVisits = new ArrayList<>();
+        
         for (Visit v : allVisits) {
             if (childDocumentId != null && childDocumentId.equals(v.getChildDocumentId())) {
-                if (latest == null || v.getVisitDate().compareTo(latest.getVisitDate()) > 0) {
-                    latest = v;
-                }
+                childVisits.add(v);
             }
         }
-        if (latest == null) return "N/A";
-        return NutritionRiskCalculator.calculateRiskFromMuac(latest.getMuacMm());
+        
+        if (childVisits.isEmpty()) return "N/A";
+        
+        // Sort descending
+        childVisits.sort((v1, v2) -> v2.getVisitDate().compareTo(v1.getVisitDate()));
+        
+        Visit latest = childVisits.get(0);
+        Visit previous = childVisits.size() > 1 ? childVisits.get(1) : null;
+        
+        return NutritionRiskCalculator.evaluateFromVisitData(latest, previous, child).riskLevel;
     }
 
     public interface DashboardStatsCallback {

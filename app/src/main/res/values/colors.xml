@@ -23,12 +23,13 @@
     <color name="colorTextOnDark">#FFFFFF</color>
 
     <!-- Risk Level Colors -->
-    <color name="colorRiskHigh">#E53935</color>
+    <color name="colorRiskHigh">#E74C3C</color>
     <color name="colorRiskHighBackground">#FFEBEE</color>
-    <color name="colorRiskMedium">#FB8C00</color>
+    <color name="colorRiskMedium">#F39C12</color>
     <color name="colorRiskMediumBackground">#FFF3E0</color>
-    <color name="colorRiskLow">#43A047</color>
+    <color name="colorRiskLow">#27AE60</color>
     <color name="colorRiskLowBackground">#E8F5E9</color>
+    <color name="colorRiskNA">#95A5A6</color>
 
     <!-- Status Colors -->
     <color name="colorSuccess">#4CAF50</color>

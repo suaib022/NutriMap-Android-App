@@ -120,51 +120,96 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadDashboardData() {
-        // Get statistics async
-        ChildRepository.getInstance().getDashboardStats(new ChildRepository.DashboardStatsCallback() {
+        // Fetch all data for dynamic calculation
+        ChildRepository.getInstance().getAllChildren(new ChildRepository.ChildrenCallback() {
             @Override
-            public void onSuccess(ChildRepository.DashboardStats stats) {
-                if (binding == null) return;
-                
-                // Update stat cards
-                binding.textViewTotalChildren.setText(String.valueOf(stats.totalChildren));
-                binding.textViewHighRisk.setText(String.valueOf(stats.highRisk));
-                binding.textViewMediumRisk.setText(String.valueOf(stats.mediumRisk));
-                binding.textViewLowRisk.setText(String.valueOf(stats.lowRisk));
+            public void onSuccess(List<Child> children) {
+                VisitRepository.getInstance().getAllVisits(new VisitRepository.VisitsCallback() {
+                    @Override
+                    public void onSuccess(List<Visit> allVisits) {
+                        calculateAndDisplayStats(children, allVisits);
+                    }
 
-                // Setup pie chart
-                setupPieChart(stats);
+                    @Override
+                    public void onError(String message) {
+                        if (getContext() != null) {
+                            Toast.makeText(requireContext(), "Error loading stats: " + message, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
 
             @Override
             public void onError(String message) {
-                if (binding == null) return;
-                binding.textViewTotalChildren.setText("0");
-                binding.textViewHighRisk.setText("0");
-                binding.textViewMediumRisk.setText("0");
-                binding.textViewLowRisk.setText("0");
-            }
-        });
-
-        // Get visit count async
-        VisitRepository.getInstance().getTotalVisitCount(new VisitRepository.CountCallback() {
-            @Override
-            public void onSuccess(int count) {
-                if (binding != null) {
-                    binding.textViewTotalVisits.setText(String.valueOf(count));
-                }
-            }
-
-            @Override
-            public void onError(String message) {
-                if (binding != null) {
-                    binding.textViewTotalVisits.setText("0");
+                if (getContext() != null) {
+                    Toast.makeText(requireContext(), "Error loading children: " + message, Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-        // Setup line chart
+        
+        // Setup line chart (visit trends) remains same
         setupLineChart();
+    }
+
+    private void calculateAndDisplayStats(List<Child> children, List<Visit> allVisits) {
+        if (binding == null) return;
+        
+        int totalChildren = children.size();
+        int totalVisits = allVisits.size();
+        
+        int highRisk = 0;
+        int mediumRisk = 0;
+        int lowRisk = 0;
+        
+        // optimize: map child -> list of visits
+        Map<String, List<Visit>> childVisitsMap = new HashMap<>();
+        for (Visit v : allVisits) {
+            String cid = v.getChildDocumentId();
+            if (cid != null) {
+                if (!childVisitsMap.containsKey(cid)) {
+                    childVisitsMap.put(cid, new ArrayList<>());
+                }
+                childVisitsMap.get(cid).add(v);
+            }
+        }
+        
+        for (Child child : children) {
+            String cid = child.getDocumentId();
+            if (cid != null && childVisitsMap.containsKey(cid)) {
+                List<Visit> childVisits = childVisitsMap.get(cid);
+                // Sort descending
+                childVisits.sort((v1, v2) -> v2.getVisitDate().compareTo(v1.getVisitDate()));
+                
+                Visit latest = childVisits.get(0);
+                Visit previous = childVisits.size() > 1 ? childVisits.get(1) : null;
+                
+                com.example.nutrimap.domain.util.NutritionRiskCalculator.RiskResult result = 
+                    com.example.nutrimap.domain.util.NutritionRiskCalculator.evaluateFromVisitData(latest, previous, child);
+                    
+                switch (result.riskLevel.toLowerCase()) {
+                    case "high": highRisk++; break;
+                    case "medium": mediumRisk++; break;
+                    case "low": lowRisk++; break;
+                }
+            } else {
+                // No visits -> what risk? Presume unknown/low or exclude from counts?
+                // Spec says "Recompute... from latest visit". If no visit, no risk level.
+                // Usually counts as "N/A" or ignored in "High/Medium/Low" counts.
+                // We won't increment any risk counter.
+            }
+        }
+        
+        // Update UI
+        binding.textViewTotalChildren.setText(String.valueOf(totalChildren));
+        binding.textViewTotalVisits.setText(String.valueOf(totalVisits));
+        
+        binding.textViewHighRisk.setText(String.valueOf(highRisk));
+        binding.textViewMediumRisk.setText(String.valueOf(mediumRisk));
+        binding.textViewLowRisk.setText(String.valueOf(lowRisk));
+        
+        // Create stats object for chart
+        ChildRepository.DashboardStats stats = new ChildRepository.DashboardStats(totalChildren, highRisk, mediumRisk, lowRisk);
+        setupPieChart(stats);
     }
 
     private void setupPieChart(ChildRepository.DashboardStats stats) {
@@ -269,37 +314,113 @@ public class HomeFragment extends Fragment {
             public void onSuccess(List<Child> children) {
                 if (binding == null) return;
                 
-                List<AreaSummaryItem> items = new ArrayList<>();
-                
-                if (selectedDivisionId.isEmpty()) {
-                    // Show all divisions
-                    for (Division d : divisions) {
-                        int count = 0;
+                VisitRepository.getInstance().getAllVisits(new VisitRepository.VisitsCallback() {
+                    @Override
+                    public void onSuccess(List<Visit> visits) {
+                        if (binding == null) return;
+                        
+                        // Map childDocumentId -> divisionId
+                        java.util.Map<String, String> childDivMap = new java.util.HashMap<>();
                         for (Child c : children) {
-                            if (d.getId().equals(c.getDivisionId())) {
-                                count++;
+                            if (c.getDocumentId() != null && c.getDivisionId() != null) {
+                                childDivMap.put(c.getDocumentId(), c.getDivisionId());
                             }
                         }
-                        items.add(new AreaSummaryItem(d.getName(), count, 0));
-                    }
-                } else {
-                    // Show only selected division
-                    for (Division d : divisions) {
-                        if (d.getId().equals(selectedDivisionId)) {
-                            int count = 0;
-                            for (Child c : children) {
-                                if (d.getId().equals(c.getDivisionId())) {
-                                    count++;
+                        
+                        // Count visits per division
+                        java.util.Map<String, Integer> divVisitCounts = new java.util.HashMap<>();
+                        for (Visit v : visits) {
+                            String cId = v.getChildDocumentId();
+                            if (cId != null && childDivMap.containsKey(cId)) {
+                                String dId = childDivMap.get(cId);
+                                divVisitCounts.put(dId, divVisitCounts.getOrDefault(dId, 0) + 1);
+                            }
+                        }
+
+                        List<AreaSummaryItem> items = new ArrayList<>();
+                        
+                        if (selectedDivisionId.isEmpty()) {
+                            // Show all divisions
+                            for (Division d : divisions) {
+                                int childCount = 0;
+                                for (Child c : children) {
+                                    if (d.getId().equals(c.getDivisionId())) {
+                                        childCount++;
+                                    }
+                                }
+                                int visitCount = divVisitCounts.getOrDefault(d.getId(), 0);
+                                items.add(new AreaSummaryItem(d.getName(), childCount, visitCount));
+                            }
+                        } else {
+                            // Show only selected division
+                            for (Division d : divisions) {
+                                if (d.getId().equals(selectedDivisionId)) {
+                                    int childCount = 0;
+                                    for (Child c : children) {
+                                        if (d.getId().equals(c.getDivisionId())) {
+                                            childCount++;
+                                        }
+                                    }
+                                    int visitCount = divVisitCounts.getOrDefault(d.getId(), 0);
+                                    items.add(new AreaSummaryItem(d.getName(), childCount, visitCount));
+                                    break;
                                 }
                             }
-                            items.add(new AreaSummaryItem(d.getName(), count, 0));
-                            break;
                         }
+                        
+                        AreaSummaryAdapter adapter = new AreaSummaryAdapter(items);
+                        binding.recyclerViewAreaSummary.setAdapter(adapter);
                     }
-                }
-                
-                AreaSummaryAdapter adapter = new AreaSummaryAdapter(items);
-                binding.recyclerViewAreaSummary.setAdapter(adapter);
+
+                    @Override
+                    public void onError(String message) {
+                        // If visit fetch fails, proceed with 0 visits
+                        if (binding == null) return;
+                        // Re-run the logic with an empty visits list
+                        // Map childDocumentId -> divisionId
+                        java.util.Map<String, String> childDivMap = new java.util.HashMap<>();
+                        for (Child c : children) {
+                            if (c.getDocumentId() != null && c.getDivisionId() != null) {
+                                childDivMap.put(c.getDocumentId(), c.getDivisionId());
+                            }
+                        }
+                        
+                        // Visit counts will all be 0 as visits list is empty
+                        java.util.Map<String, Integer> divVisitCounts = new java.util.HashMap<>();
+
+                        List<AreaSummaryItem> items = new ArrayList<>();
+                        
+                        if (selectedDivisionId.isEmpty()) {
+                            for (Division d : divisions) {
+                                int childCount = 0;
+                                for (Child c : children) {
+                                    if (d.getId().equals(c.getDivisionId())) {
+                                        childCount++;
+                                    }
+                                }
+                                int visitCount = divVisitCounts.getOrDefault(d.getId(), 0); // Will be 0
+                                items.add(new AreaSummaryItem(d.getName(), childCount, visitCount));
+                            }
+                        } else {
+                            for (Division d : divisions) {
+                                if (d.getId().equals(selectedDivisionId)) {
+                                    int childCount = 0;
+                                    for (Child c : children) {
+                                        if (d.getId().equals(c.getDivisionId())) {
+                                            childCount++;
+                                        }
+                                    }
+                                    int visitCount = divVisitCounts.getOrDefault(d.getId(), 0); // Will be 0
+                                    items.add(new AreaSummaryItem(d.getName(), childCount, visitCount));
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        AreaSummaryAdapter adapter = new AreaSummaryAdapter(items);
+                        binding.recyclerViewAreaSummary.setAdapter(adapter);
+                    }
+                });
             }
 
             @Override

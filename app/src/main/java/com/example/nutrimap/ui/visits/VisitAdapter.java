@@ -60,7 +60,7 @@ public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
         childNames.clear();
         for (Child child : children) {
             if (child.getDocumentId() != null) {
-                childNames.put(child.getDocumentId(), child.getName());
+                childNames.put(child.getDocumentId(), child.getFullName());
             }
         }
     }
@@ -106,7 +106,11 @@ public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
             textViewHeight.setText("Height: " + visit.getHeightCm() + " cm");
             textViewMuac.setText("MUAC: " + visit.getMuacMm() + " mm");
 
-            String risk = NutritionRiskCalculator.calculateRiskFromMuac(visit.getMuacMm());
+            textViewMuac.setText("MUAC: " + visit.getMuacMm() + " mm");
+
+            String risk = visit.getRiskLevel();
+            if (risk == null || risk.isEmpty()) risk = "N/A";
+            
             textViewRisk.setText(risk);
             textViewRisk.setBackgroundResource(NutritionRiskCalculator.getRiskBackgroundResource(risk));
             textViewRisk.setTextColor(ContextCompat.getColor(itemView.getContext(),

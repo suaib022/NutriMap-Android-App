@@ -65,7 +65,7 @@ public class ChildAdapter extends ListAdapter<Child, ChildAdapter.ViewHolder> {
 
         @Override
         public boolean areContentsTheSame(@NonNull Child oldItem, @NonNull Child newItem) {
-            return oldItem.getName().equals(newItem.getName());
+            return oldItem.getFullName().equals(newItem.getFullName());
         }
     };
 
@@ -84,6 +84,7 @@ public class ChildAdapter extends ListAdapter<Child, ChildAdapter.ViewHolder> {
             String childDocId = v.getChildDocumentId();
             if (childDocId != null) {
                 Visit existing = latestVisits.get(childDocId);
+                // Sort by date descending logic
                 if (existing == null || v.getVisitDate().compareTo(existing.getVisitDate()) > 0) {
                     latestVisits.put(childDocId, v);
                 }
@@ -190,7 +191,7 @@ public class ChildAdapter extends ListAdapter<Child, ChildAdapter.ViewHolder> {
                   Map<String, String> upazilaNames, Map<String, String> unionNames,
                   Visit latestVisit) {
             
-            textViewName.setText(child.getName());
+            textViewName.setText(child.getFullName());
             textViewAge.setText(child.getAgeString());
             textViewGender.setText(child.getGender());
             
@@ -200,8 +201,8 @@ public class ChildAdapter extends ListAdapter<Child, ChildAdapter.ViewHolder> {
 
             // Get risk level from latest visit
             String riskLevel = "N/A";
-            if (latestVisit != null) {
-                riskLevel = NutritionRiskCalculator.calculateRiskFromMuac(latestVisit.getMuacMm());
+            if (latestVisit != null && latestVisit.getRiskLevel() != null) {
+                riskLevel = latestVisit.getRiskLevel();
             }
             textViewRisk.setText(riskLevel);
             textViewRisk.setBackgroundResource(NutritionRiskCalculator.getRiskBackgroundResource(riskLevel));

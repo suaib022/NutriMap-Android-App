@@ -216,7 +216,6 @@ public class FirebaseDataService {
     public void getVisitsForChild(String childDocumentId, DataCallback<List<Visit>> callback) {
         db.collection(COLLECTION_VISITS)
                 .whereEqualTo("childDocumentId", childDocumentId)
-                .orderBy("visitDate", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<Visit> visits = new ArrayList<>();
@@ -291,15 +290,49 @@ public class FirebaseDataService {
         CollectionReference ref = db.collection(COLLECTION_CHILDREN);
         
         ref.add(new Child(0, "Arif Rahman", "Kamal Rahman", "Fatima Rahman", "01712345678",
-                "Male", "2022-03-15", "1", "1", "1", "1", "1"));
+                "Chattogram", "Comilla", "Debidwar", "Union 1", "1", "Main Branch", "",
+                "Male", "2022-03-15", "1", "1", "1", "1"))
+                .addOnSuccessListener(doc -> addSampleVisits(doc.getId(), 1));
+
         ref.add(new Child(0, "Fatima Akter", "Jobbar Akter", "Hasina Akter", "01812345679",
-                "Female", "2021-08-20", "1", "1", "1", "2", "1"));
+                "Chattogram", "Comilla", "Debidwar", "Union 2", "1", "Main Branch", "",
+                "Female", "2021-08-20", "1", "1", "1", "2"))
+                .addOnSuccessListener(doc -> addSampleVisits(doc.getId(), 2));
+
         ref.add(new Child(0, "Rifat Hasan", "Belal Hasan", "Sumaya Hasan", "01912345680",
-                "Male", "2023-01-10", "1", "1", "2", "16", "2"));
+                "Chattogram", "Comilla", "Debidwar", "Union 16", "2", "Main Branch", "",
+                "Male", "2023-01-10", "1", "1", "2", "16"))
+                .addOnSuccessListener(doc -> addSampleVisits(doc.getId(), 3));
+        
         ref.add(new Child(0, "Nadia Islam", "Raju Islam", "Roksana Islam", "01612345681",
-                "Female", "2022-06-05", "1", "1", "3", "31", "3"));
+                "Chattogram", "Comilla", "Burichang", "Union 31", "3", "Main Branch", "",
+                "Female", "2022-06-05", "1", "1", "3", "31"));
+
         ref.add(new Child(0, "Imran Khan", "Aziz Khan", "Rokeya Khan", "01512345682",
-                "Male", "2021-11-25", "6", "47", "339", "2900", "100"));
+                "Dhaka", "Dhaka", "Dhamrai", "Union 2900", "100", "Dhaka Branch", "",
+                "Male", "2021-11-25", "6", "47", "339", "2900"));
+    }
+
+    private void addSampleVisits(String childId, int type) {
+        CollectionReference vRef = db.collection(COLLECTION_VISITS);
+        
+        if (type == 1) { // Healthy
+             Visit v1 = new Visit(0, 0, "2024-01-15", 9.0, 75.0, 135, "Healthy", "Low", null, null, 1, false);
+             v1.setChildDocumentId(childId);
+             vRef.add(v1);
+             
+             Visit v2 = new Visit(0, 0, "2024-04-20", 9.8, 79.0, 140, "Growing well", "Low", null, null, 1, false);
+             v2.setChildDocumentId(childId);
+             vRef.add(v2);
+        } else if (type == 2) { // Moderate
+             Visit v1 = new Visit(0, 0, "2024-02-05", 7.5, 70.0, 120, "Concern", "Medium", null, null, 1, false);
+             v1.setChildDocumentId(childId);
+             vRef.add(v1);
+        } else if (type == 3) { // High
+             Visit v1 = new Visit(0, 0, "2024-03-01", 6.0, 65.0, 110, "Severe", "High", null, null, 1, false);
+             v1.setChildDocumentId(childId);
+             vRef.add(v1);
+        }
     }
 
     private void seedUsers() {
@@ -312,7 +345,6 @@ public class FirebaseDataService {
     }
 
     private void seedVisits() {
-        // Visits will be added after children documents are created
-        // For now, leave empty - visits can be added through the app
+        // Now handled inside seedChildren
     }
 }
