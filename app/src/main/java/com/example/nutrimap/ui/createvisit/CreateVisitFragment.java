@@ -33,8 +33,8 @@ import java.util.Locale;
 public class CreateVisitFragment extends Fragment {
 
     private FragmentCreateVisitBinding binding;
-    private int childId = -1;
-    private int visitId = -1;
+    private String childDocumentId = "";
+    private String visitDocumentId = "";
     private List<Child> children = new ArrayList<>();
 
     @Nullable
@@ -49,8 +49,8 @@ public class CreateVisitFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (getArguments() != null) {
-            childId = getArguments().getInt("childId", -1);
-            visitId = getArguments().getInt("visitId", -1);
+            childDocumentId = getArguments().getString("childDocumentId", "");
+            visitDocumentId = getArguments().getString("visitDocumentId", "");
         }
 
         setupChildSpinner();
@@ -64,28 +64,42 @@ public class CreateVisitFragment extends Fragment {
     }
 
     private void setupChildSpinner() {
-        children = ChildRepository.getInstance().getAllChildren();
-        List<String> names = new ArrayList<>();
-        int selectedIndex = -1;
+        ChildRepository.getInstance().getAllChildren(new ChildRepository.ChildrenCallback() {
+            @Override
+            public void onSuccess(List<Child> childList) {
+                children = childList;
+                List<String> names = new ArrayList<>();
+                int selectedIndex = -1;
 
-        for (int i = 0; i < children.size(); i++) {
-            Child c = children.get(i);
-            names.add(c.getName());
-            if (c.getId() == childId) {
-                selectedIndex = i;
+                for (int i = 0; i < children.size(); i++) {
+                    Child c = children.get(i);
+                    names.add(c.getName());
+                    if (c.getDocumentId() != null && c.getDocumentId().equals(childDocumentId)) {
+                        selectedIndex = i;
+                    }
+                }
+
+                if (getContext() != null) {
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_dropdown_item_1line, names);
+                    binding.spinnerChild.setAdapter(adapter);
+
+                    if (selectedIndex >= 0) {
+                        binding.spinnerChild.setText(names.get(selectedIndex), false);
+                    }
+                }
             }
-        }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_dropdown_item_1line, names);
-        binding.spinnerChild.setAdapter(adapter);
-
-        if (selectedIndex >= 0) {
-            binding.spinnerChild.setText(names.get(selectedIndex), false);
-        }
+            @Override
+            public void onError(String message) {
+                if (getContext() != null) {
+                    Toast.makeText(requireContext(), "Error loading children: " + message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         binding.spinnerChild.setOnItemClickListener((parent, v, position, id) -> {
-            childId = children.get(position).getId();
+            childDocumentId = children.get(position).getDocumentId();
         });
     }
 
@@ -135,7 +149,7 @@ public class CreateVisitFragment extends Fragment {
     }
 
     private void saveVisit() {
-        if (childId <= 0) {
+        if (childDocumentId == null || childDocumentId.isEmpty()) {
             Toast.makeText(requireContext(), "Please select a child", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -155,23 +169,52 @@ public class CreateVisitFragment extends Fragment {
             int muac = Integer.parseInt(muacStr);
 
             Visit visit = new Visit(
-                    visitId > 0 ? visitId : 0,
-                    childId,
+                    0,
+                    0,
                     binding.editTextDate.getText().toString(),
                     weight,
                     height,
                     muac,
                     binding.editTextNotes.getText().toString().trim()
             );
+            visit.setChildDocumentId(childDocumentId);
 
-            if (visitId > 0) {
-                VisitRepository.getInstance().updateVisit(visit);
+            if (!visitDocumentId.isEmpty()) {
+                visit.setDocumentId(visitDocumentId);
+                VisitRepository.getInstance().updateVisit(visit, new VisitRepository.OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (getContext() != null) {
+                            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                            Navigation.findNavController(requireView()).popBackStack();
+                        }
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (getContext() != null) {
+                            Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             } else {
-                VisitRepository.getInstance().addVisit(visit);
-            }
+                VisitRepository.getInstance().addVisit(visit, new VisitRepository.VisitCallback() {
+                    @Override
+                    public void onSuccess(Visit newVisit) {
+                        if (getContext() != null) {
+                            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                            Navigation.findNavController(requireView()).popBackStack();
+                        }
+                    }
 
-            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
-            Navigation.findNavController(requireView()).popBackStack();
+                    @Override
+                    public void onError(String message) {
+                        if (getContext() != null) {
+                            Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
 
         } catch (NumberFormatException e) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show();

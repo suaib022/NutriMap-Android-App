@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,7 +32,8 @@ import java.util.List;
 public class ChildProfileFragment extends Fragment {
 
     private FragmentChildProfileBinding binding;
-    private int childId = -1;
+    private String childDocumentId = "";
+    private Child currentChild = null;
     private VisitAdapter visitAdapter;
 
     @Nullable
@@ -46,7 +48,7 @@ public class ChildProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (getArguments() != null) {
-            childId = getArguments().getInt("childId", -1);
+            childDocumentId = getArguments().getString("childDocumentId", "");
         }
 
         setupVisitsList();
@@ -63,49 +65,79 @@ public class ChildProfileFragment extends Fragment {
     private void setupFab() {
         binding.fabAddVisit.setOnClickListener(v -> {
             Bundle args = new Bundle();
-            args.putInt("childId", childId);
-            args.putInt("visitId", -1);
+            args.putString("childDocumentId", childDocumentId);
+            args.putString("visitDocumentId", "");
             Navigation.findNavController(requireView()).navigate(R.id.createVisitFragment, args);
         });
     }
 
     private void loadChildProfile() {
-        Child child = ChildRepository.getInstance().getChildById(childId);
-        if (child == null) return;
+        if (childDocumentId.isEmpty()) return;
+        
+        ChildRepository.getInstance().getChildById(childDocumentId, new ChildRepository.ChildCallback() {
+            @Override
+            public void onSuccess(Child child) {
+                currentChild = child;
+                if (binding == null) return;
+                
+                // Display child info
+                binding.textViewName.setText(child.getName());
+                binding.textViewAge.setText(child.getAgeString() + " • " + child.getGender());
+                binding.textViewFather.setText(child.getFatherName());
+                binding.textViewMother.setText(child.getMotherName());
+                binding.textViewContact.setText(child.getContact());
+                binding.textViewLocation.setText("Division " + child.getDivisionId() + 
+                        ", District " + child.getDistrictId());
 
-        // Display child info
-        binding.textViewName.setText(child.getName());
-        binding.textViewAge.setText(child.getAgeString() + " • " + child.getGender());
-        binding.textViewFather.setText(child.getFatherName());
-        binding.textViewMother.setText(child.getMotherName());
-        binding.textViewContact.setText(child.getContact());
-        binding.textViewLocation.setText("Division " + child.getDivisionId() + 
-                ", District " + child.getDistrictId());
+                // Load visits and calculate risk
+                loadVisits();
+            }
 
-        // Risk level
-        String risk = ChildRepository.getInstance().getRiskLevelForChild(childId);
-        binding.textViewRisk.setText(risk);
-        binding.textViewRisk.setBackgroundResource(NutritionRiskCalculator.getRiskBackgroundResource(risk));
-        binding.textViewRisk.setTextColor(ContextCompat.getColor(requireContext(),
-                NutritionRiskCalculator.getRiskTextColorResource(risk)));
-
-        // Load visits
-        loadVisits();
+            @Override
+            public void onError(String message) {
+                if (getContext() != null) {
+                    Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void loadVisits() {
-        List<Visit> visits = VisitRepository.getInstance().getVisitsForChild(childId);
-        
-        if (visits.isEmpty()) {
-            binding.textViewNoVisits.setVisibility(View.VISIBLE);
-            binding.recyclerViewVisits.setVisibility(View.GONE);
-            binding.lineChartGrowth.setNoDataText("No visit data for chart");
-        } else {
-            binding.textViewNoVisits.setVisibility(View.GONE);
-            binding.recyclerViewVisits.setVisibility(View.VISIBLE);
-            visitAdapter.submitList(visits);
-            setupGrowthChart(visits);
-        }
+        VisitRepository.getInstance().getVisitsForChild(childDocumentId, new VisitRepository.VisitsCallback() {
+            @Override
+            public void onSuccess(List<Visit> visits) {
+                if (binding == null) return;
+                
+                if (visits.isEmpty()) {
+                    binding.textViewNoVisits.setVisibility(View.VISIBLE);
+                    binding.recyclerViewVisits.setVisibility(View.GONE);
+                    binding.lineChartGrowth.setNoDataText("No visit data for chart");
+                    binding.textViewRisk.setText("N/A");
+                    binding.textViewRisk.setBackgroundResource(R.color.colorBackground);
+                } else {
+                    binding.textViewNoVisits.setVisibility(View.GONE);
+                    binding.recyclerViewVisits.setVisibility(View.VISIBLE);
+                    visitAdapter.submitList(visits);
+                    setupGrowthChart(visits);
+                    
+                    // Calculate risk from latest visit
+                    Visit latestVisit = visits.get(0); // Already sorted by date desc
+                    String risk = NutritionRiskCalculator.calculateRiskFromMuac(latestVisit.getMuacMm());
+                    binding.textViewRisk.setText(risk);
+                    binding.textViewRisk.setBackgroundResource(NutritionRiskCalculator.getRiskBackgroundResource(risk));
+                    binding.textViewRisk.setTextColor(ContextCompat.getColor(requireContext(),
+                            NutritionRiskCalculator.getRiskTextColorResource(risk)));
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                if (binding != null) {
+                    binding.textViewNoVisits.setVisibility(View.VISIBLE);
+                    binding.recyclerViewVisits.setVisibility(View.GONE);
+                }
+            }
+        });
     }
 
     private void setupGrowthChart(List<Visit> visits) {
@@ -144,7 +176,7 @@ public class ChildProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (childId > 0) {
+        if (!childDocumentId.isEmpty()) {
             loadVisits();
         }
     }

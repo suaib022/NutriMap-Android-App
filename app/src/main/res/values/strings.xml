@@ -153,4 +153,9 @@
     <string name="cd_view">View</string>
     <string name="cd_edit">Edit</string>
     <string name="cd_delete">Delete</string>
+
+    <!-- Filter and Pagination -->
+    <string name="filter_all">All</string>
+    <string name="btn_load_more">Load More</string>
+    <string name="showing_x_of_y">Showing %1$d of %2$d</string>
 </resources>

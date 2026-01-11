@@ -80,8 +80,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:drawableStart="@android:drawable/ic_menu_compass"
-            android:drawablePadding="8dp"
             android:textColor="@color/colorTextSecondary"
             android:textSize="12sp" />
 
@@ -91,8 +89,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:drawableStart="@android:drawable/ic_menu_recent_history"
-            android:drawablePadding="8dp"
             android:textColor="@color/colorTextSecondary"
             android:textSize="12sp" />
 

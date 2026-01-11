@@ -6,13 +6,13 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.nutrimap.data.repository.UserRepository;
 import com.example.nutrimap.databinding.ActivityLoginBinding;
 import com.example.nutrimap.ui.main.MainActivity;
 
 /**
  * Login screen activity.
  * For this phase, any non-empty email/password combination is accepted.
+ * Firebase Authentication can be added in a future phase.
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -45,9 +45,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // For this phase, accept any non-empty credentials
-        // Optionally validate against static users
-        if (UserRepository.getInstance().validateLogin(email, password) || 
-            (!email.isEmpty() && !password.isEmpty())) {
+        // Firebase Auth can be integrated in a future phase
+        if (!email.isEmpty() && !password.isEmpty()) {
             // Login successful - navigate to main
             navigateToMain(email);
         } else {

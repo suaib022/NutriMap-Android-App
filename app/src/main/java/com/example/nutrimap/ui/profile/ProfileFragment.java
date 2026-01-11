@@ -40,16 +40,25 @@ public class ProfileFragment extends Fragment {
             email = ((MainActivity) getActivity()).getCurrentUserEmail();
         }
 
-        User user = UserRepository.getInstance().getUserByEmail(email);
-        if (user != null) {
-            binding.textViewName.setText(user.getName());
-            binding.textViewEmail.setText(user.getEmail());
-            binding.textViewRole.setText(user.getRole());
-        } else {
-            binding.textViewName.setText("NutriMap User");
-            binding.textViewEmail.setText(email);
-            binding.textViewRole.setText("USER");
-        }
+        final String userEmail = email;
+        
+        UserRepository.getInstance().getUserByEmail(email, new UserRepository.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                if (binding == null) return;
+                binding.textViewName.setText(user.getName());
+                binding.textViewEmail.setText(user.getEmail());
+                binding.textViewRole.setText(user.getRole());
+            }
+
+            @Override
+            public void onError(String message) {
+                if (binding == null) return;
+                binding.textViewName.setText("NutriMap User");
+                binding.textViewEmail.setText(userEmail);
+                binding.textViewRole.setText("USER");
+            }
+        });
     }
 
     private void setupLogout() {

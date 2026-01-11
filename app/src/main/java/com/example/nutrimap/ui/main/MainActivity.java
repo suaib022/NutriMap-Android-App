@@ -10,7 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -22,6 +24,9 @@ import com.example.nutrimap.domain.model.User;
 import com.example.nutrimap.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Main activity hosting the navigation drawer and fragment container.
  */
@@ -30,7 +35,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ActivityMainBinding binding;
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
+    private ActionBarDrawerToggle toggle;
     private String currentUserEmail;
+    private Set<Integer> topLevelDestinations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,15 +67,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navController = navHostFragment.getNavController();
         }
 
+        // Define top-level destinations (these show hamburger menu, not back button)
+        topLevelDestinations = new HashSet<>();
+        topLevelDestinations.add(R.id.homeFragment);
+        topLevelDestinations.add(R.id.childrenFragment);
+        topLevelDestinations.add(R.id.visitsFragment);
+        topLevelDestinations.add(R.id.usersFragment);
+        topLevelDestinations.add(R.id.branchesFragment);
+        topLevelDestinations.add(R.id.profileFragment);
+
         // Configure top-level destinations (no back button)
-        appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.homeFragment,
-                R.id.childrenFragment,
-                R.id.visitsFragment,
-                R.id.usersFragment,
-                R.id.branchesFragment,
-                R.id.profileFragment
-        ).setOpenableLayout(binding.drawerLayout).build();
+        appBarConfiguration = new AppBarConfiguration.Builder(topLevelDestinations)
+                .setOpenableLayout(binding.drawerLayout)
+                .build();
 
         // Setup ActionBar with Navigation
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
@@ -77,12 +88,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         binding.navigationView.setNavigationItemSelectedListener(this);
 
         // Setup drawer toggle
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        toggle = new ActionBarDrawerToggle(
                 this, binding.drawerLayout, binding.toolbar,
                 R.string.nav_home, R.string.nav_home
         );
         binding.drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+        // Listen to destination changes to enable/disable drawer toggle
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            boolean isTopLevel = topLevelDestinations.contains(destination.getId());
+            
+            if (isTopLevel) {
+                // Top-level destinations: enable drawer, show hamburger menu
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                toggle.setDrawerIndicatorEnabled(true);
+            } else {
+                // Child destinations: disable drawer, show back button
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                toggle.setDrawerIndicatorEnabled(false);
+                
+                // Setup click to navigate back
+                toggle.setToolbarNavigationClickListener(v -> {
+                    navController.navigateUp();
+                });
+            }
+        });
     }
 
     private void updateNavHeader() {
@@ -90,14 +121,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView textViewUserName = headerView.findViewById(R.id.textViewUserName);
         TextView textViewUserEmail = headerView.findViewById(R.id.textViewUserEmail);
 
-        User user = UserRepository.getInstance().getUserByEmail(currentUserEmail);
-        if (user != null) {
-            textViewUserName.setText(user.getName());
-            textViewUserEmail.setText(user.getEmail());
-        } else {
-            textViewUserName.setText("NutriMap User");
-            textViewUserEmail.setText(currentUserEmail);
-        }
+        // Set default values first
+        textViewUserName.setText("NutriMap User");
+        textViewUserEmail.setText(currentUserEmail);
+        
+        // Try to load user details async
+        UserRepository.getInstance().getUserByEmail(currentUserEmail, new UserRepository.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                textViewUserName.setText(user.getName());
+                textViewUserEmail.setText(user.getEmail());
+            }
+
+            @Override
+            public void onError(String message) {
+                // Keep default values
+            }
+        });
     }
 
     @Override

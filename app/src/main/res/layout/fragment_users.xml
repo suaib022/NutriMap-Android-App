@@ -10,11 +10,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Search Bar -->
         <EditText
             android:id="@+id/editTextSearch"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_margin="16dp"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/bg_search_bar"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="8dp"
@@ -24,6 +26,43 @@
             android:paddingEnd="16dp"
             android:textSize="14sp" />
 
+        <!-- Filter Section -->
+        <LinearLayout
+            android:id="@+id/filterSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.NutriMap.Spinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:hint="@string/label_branch">
+
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerBranch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textSize="13sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonReset"
+                style="@style/Widget.NutriMap.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_reset" />
+
+        </LinearLayout>
+
+        <!-- Users List -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewUsers"
             android:layout_width="match_parent"
@@ -42,6 +81,35 @@
             android:textColor="@color/colorTextSecondary"
             android:visibility="gone" />
 
+        <!-- Pagination Controls -->
+        <LinearLayout
+            android:id="@+id/paginationSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorSurface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/textViewShowingCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Showing 0 of 0"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLoadMore"
+                style="@style/Widget.NutriMap.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Load More"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -50,6 +118,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
+        android:layout_marginBottom="72dp"
         android:contentDescription="@string/cd_add_new"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/colorFab"

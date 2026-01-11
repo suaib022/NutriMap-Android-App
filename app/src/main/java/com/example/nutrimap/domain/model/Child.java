@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Child {
     private int id;
+    private String documentId; // Firestore document ID
     private String name;
     private String fatherName;
     private String motherName;
@@ -73,6 +74,9 @@ public class Child {
 
     public String getBranchId() { return branchId; }
     public void setBranchId(String branchId) { this.branchId = branchId; }
+
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
 
     // Helper methods
     public int getAgeInMonths() {

@@ -1,15 +1,15 @@
 package com.example.nutrimap.data.repository;
 
+import com.example.nutrimap.data.firebase.FirebaseDataService;
 import com.example.nutrimap.domain.model.Child;
 import com.example.nutrimap.domain.model.Visit;
 import com.example.nutrimap.domain.util.NutritionRiskCalculator;
-import com.example.nutrimap.util.StaticDataProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Repository for child data access.
+ * Repository for child data access using Firebase Firestore.
  */
 public class ChildRepository {
 
@@ -24,80 +24,213 @@ public class ChildRepository {
         return instance;
     }
 
-    public List<Child> getAllChildren() {
-        return StaticDataProvider.getInstance().getChildren();
+    // Callback interfaces
+    public interface ChildrenCallback {
+        void onSuccess(List<Child> children);
+        void onError(String message);
     }
 
-    public List<Child> searchChildren(String query) {
-        if (query == null || query.isEmpty()) {
-            return getAllChildren();
-        }
+    public interface ChildCallback {
+        void onSuccess(Child child);
+        void onError(String message);
+    }
 
-        String lowerQuery = query.toLowerCase();
-        List<Child> result = new ArrayList<>();
-        for (Child c : getAllChildren()) {
-            if (c.getName().toLowerCase().contains(lowerQuery) ||
-                    c.getFatherName().toLowerCase().contains(lowerQuery) ||
-                    c.getMotherName().toLowerCase().contains(lowerQuery)) {
-                result.add(c);
+    public interface OperationCallback {
+        void onSuccess();
+        void onError(String message);
+    }
+
+    // ==================== FIREBASE CRUD ====================
+
+    public void getAllChildren(ChildrenCallback callback) {
+        FirebaseDataService.getInstance().getAllChildren(new FirebaseDataService.DataCallback<List<Child>>() {
+            @Override
+            public void onSuccess(List<Child> data) {
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void getChildById(String documentId, ChildCallback callback) {
+        FirebaseDataService.getInstance().getChildById(documentId, new FirebaseDataService.DataCallback<Child>() {
+            @Override
+            public void onSuccess(Child data) {
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void addChild(Child child, ChildCallback callback) {
+        FirebaseDataService.getInstance().addChild(child, new FirebaseDataService.DataCallback<Child>() {
+            @Override
+            public void onSuccess(Child data) {
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void updateChild(Child child, OperationCallback callback) {
+        FirebaseDataService.getInstance().updateChild(child, new FirebaseDataService.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void deleteChild(String documentId, OperationCallback callback) {
+        FirebaseDataService.getInstance().deleteChild(documentId, new FirebaseDataService.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    // ==================== SEARCH AND FILTER ====================
+
+    public void searchChildren(String query, ChildrenCallback callback) {
+        getAllChildren(new ChildrenCallback() {
+            @Override
+            public void onSuccess(List<Child> children) {
+                if (query == null || query.isEmpty()) {
+                    callback.onSuccess(children);
+                    return;
+                }
+                String lowerQuery = query.toLowerCase();
+                List<Child> result = new ArrayList<>();
+                for (Child c : children) {
+                    if (c.getName().toLowerCase().contains(lowerQuery) ||
+                            c.getFatherName().toLowerCase().contains(lowerQuery) ||
+                            c.getMotherName().toLowerCase().contains(lowerQuery)) {
+                        result.add(c);
+                    }
+                }
+                callback.onSuccess(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void filterChildrenByLocation(String divisionId, String districtId,
+                                         String upazilaId, String unionId, ChildrenCallback callback) {
+        getAllChildren(new ChildrenCallback() {
+            @Override
+            public void onSuccess(List<Child> children) {
+                List<Child> result = new ArrayList<>();
+                for (Child c : children) {
+                    boolean matches = true;
+                    if (divisionId != null && !divisionId.isEmpty()) {
+                        matches = divisionId.equals(c.getDivisionId());
+                    }
+                    if (matches && districtId != null && !districtId.isEmpty()) {
+                        matches = districtId.equals(c.getDistrictId());
+                    }
+                    if (matches && upazilaId != null && !upazilaId.isEmpty()) {
+                        matches = upazilaId.equals(c.getUpazilaId());
+                    }
+                    if (matches && unionId != null && !unionId.isEmpty()) {
+                        matches = unionId.equals(c.getUnionId());
+                    }
+                    if (matches) {
+                        result.add(c);
+                    }
+                }
+                callback.onSuccess(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    // ==================== DASHBOARD STATS ====================
+
+    public void getDashboardStats(DashboardStatsCallback callback) {
+        getAllChildren(new ChildrenCallback() {
+            @Override
+            public void onSuccess(List<Child> children) {
+                VisitRepository.getInstance().getAllVisits(new VisitRepository.VisitsCallback() {
+                    @Override
+                    public void onSuccess(List<Visit> visits) {
+                        int total = children.size();
+                        int highRisk = 0;
+                        int mediumRisk = 0;
+                        int lowRisk = 0;
+
+                        for (Child c : children) {
+                            String risk = getRiskLevelFromVisits(c.getDocumentId(), visits);
+                            switch (risk) {
+                                case "High": highRisk++; break;
+                                case "Medium": mediumRisk++; break;
+                                case "Low": lowRisk++; break;
+                            }
+                        }
+                        callback.onSuccess(new DashboardStats(total, highRisk, mediumRisk, lowRisk));
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        // Return stats with what we have
+                        callback.onSuccess(new DashboardStats(children.size(), 0, 0, 0));
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    private String getRiskLevelFromVisits(String childDocumentId, List<Visit> allVisits) {
+        Visit latest = null;
+        for (Visit v : allVisits) {
+            if (childDocumentId != null && childDocumentId.equals(v.getChildDocumentId())) {
+                if (latest == null || v.getVisitDate().compareTo(latest.getVisitDate()) > 0) {
+                    latest = v;
+                }
             }
         }
-        return result;
+        if (latest == null) return "N/A";
+        return NutritionRiskCalculator.calculateRiskFromMuac(latest.getMuacMm());
     }
 
-    public Child getChildById(int id) {
-        return StaticDataProvider.getInstance().getChildById(id);
-    }
-
-    public Child addChild(Child child) {
-        return StaticDataProvider.getInstance().addChild(child);
-    }
-
-    public void updateChild(Child child) {
-        StaticDataProvider.getInstance().updateChild(child);
-    }
-
-    public void deleteChild(int id) {
-        StaticDataProvider.getInstance().deleteChild(id);
-    }
-
-    /**
-     * Get risk level for a child based on their latest visit's MUAC.
-     */
-    public String getRiskLevelForChild(int childId) {
-        Visit latestVisit = StaticDataProvider.getInstance().getLatestVisitForChild(childId);
-        if (latestVisit == null) {
-            return "N/A";
-        }
-        return NutritionRiskCalculator.calculateRiskFromMuac(latestVisit.getMuacMm());
-    }
-
-    /**
-     * Get statistics for dashboard.
-     */
-    public DashboardStats getDashboardStats() {
-        List<Child> children = getAllChildren();
-        int total = children.size();
-        int highRisk = 0;
-        int mediumRisk = 0;
-        int lowRisk = 0;
-
-        for (Child c : children) {
-            String risk = getRiskLevelForChild(c.getId());
-            switch (risk) {
-                case "High":
-                    highRisk++;
-                    break;
-                case "Medium":
-                    mediumRisk++;
-                    break;
-                case "Low":
-                    lowRisk++;
-                    break;
-            }
-        }
-
-        return new DashboardStats(total, highRisk, mediumRisk, lowRisk);
+    public interface DashboardStatsCallback {
+        void onSuccess(DashboardStats stats);
+        void onError(String message);
     }
 
     public static class DashboardStats {

@@ -33,9 +33,9 @@
         android:label="@string/create_child_title"
         tools:layout="@layout/fragment_create_child">
         <argument
-            android:name="childId"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            android:name="childDocumentId"
+            app:argType="string"
+            android:defaultValue="" />
     </fragment>
 
     <!-- Child Profile -->
@@ -45,8 +45,9 @@
         android:label="@string/child_profile_title"
         tools:layout="@layout/fragment_child_profile">
         <argument
-            android:name="childId"
-            app:argType="integer" />
+            android:name="childDocumentId"
+            app:argType="string"
+            android:defaultValue="" />
         <action
             android:id="@+id/action_childProfile_to_createVisit"
             app:destination="@id/createVisitFragment" />
@@ -73,13 +74,13 @@
         android:label="@string/create_visit_title"
         tools:layout="@layout/fragment_create_visit">
         <argument
-            android:name="childId"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            android:name="childDocumentId"
+            app:argType="string"
+            android:defaultValue="" />
         <argument
-            android:name="visitId"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            android:name="visitDocumentId"
+            app:argType="string"
+            android:defaultValue="" />
     </fragment>
 
     <!-- Users List -->

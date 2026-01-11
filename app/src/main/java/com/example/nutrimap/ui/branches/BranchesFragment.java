@@ -32,7 +32,11 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
     private BranchAdapter adapter;
     private List<Division> divisions = new ArrayList<>();
     private String selectedDivision = "";
-    private String selectedDistrict = "";
+
+    // Pagination state
+    private static final int PAGE_SIZE = 10;
+    private List<Branch> allFilteredBranches = new ArrayList<>();
+    private int currentDisplayCount = PAGE_SIZE;
 
     @Nullable
     @Override
@@ -47,6 +51,7 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
         setupRecyclerView();
         setupSearch();
         setupFilters();
+        setupPagination();
         loadDivisions();
         loadBranches();
     }
@@ -61,7 +66,7 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
         binding.editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchBranches(s.toString());
+                applyFiltersAndSearch();
             }
             @Override public void afterTextChanged(Editable s) {}
         });
@@ -71,17 +76,22 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
         binding.spinnerDivision.setOnItemClickListener((parent, v, position, id) -> {
             if (position < divisions.size()) {
                 selectedDivision = divisions.get(position).getName();
-                filterByLocation();
+                applyFiltersAndSearch();
             }
         });
 
         binding.buttonReset.setOnClickListener(v -> {
             selectedDivision = "";
-            selectedDistrict = "";
             binding.spinnerDivision.setText("", false);
-            binding.spinnerDistrict.setText("", false);
             binding.editTextSearch.setText("");
             loadBranches();
+        });
+    }
+
+    private void setupPagination() {
+        binding.buttonLoadMore.setOnClickListener(v -> {
+            currentDisplayCount += PAGE_SIZE;
+            updateDisplayedList();
         });
     }
 
@@ -112,7 +122,9 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
             @Override
             public void onSuccess(List<Branch> branches) {
                 binding.progressBar.setVisibility(View.GONE);
-                updateList(branches);
+                allFilteredBranches = new ArrayList<>(branches);
+                currentDisplayCount = PAGE_SIZE;
+                updateDisplayedList();
             }
 
             @Override
@@ -123,40 +135,73 @@ public class BranchesFragment extends Fragment implements BranchAdapter.OnBranch
         });
     }
 
-    private void filterByLocation() {
+    private void applyFiltersAndSearch() {
+        String query = binding.editTextSearch.getText().toString().trim().toLowerCase();
+        
         binding.progressBar.setVisibility(View.VISIBLE);
-        BranchRepository.getInstance().getBranchesByLocation(selectedDivision, selectedDistrict, "",
-                new BranchRepository.BranchCallback() {
-                    @Override
-                    public void onSuccess(List<Branch> branches) {
-                        binding.progressBar.setVisibility(View.GONE);
-                        updateList(branches);
-                    }
+        
+        // First filter by division
+        if (selectedDivision.isEmpty()) {
+            BranchRepository.getInstance().getBranches(new BranchRepository.BranchCallback() {
+                @Override
+                public void onSuccess(List<Branch> branches) {
+                    binding.progressBar.setVisibility(View.GONE);
+                    applySearchFilter(branches, query);
+                }
 
-                    @Override
-                    public void onError(String message) {
-                        binding.progressBar.setVisibility(View.GONE);
-                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                @Override
+                public void onError(String message) {
+                    binding.progressBar.setVisibility(View.GONE);
+                }
+            });
+        } else {
+            BranchRepository.getInstance().getBranchesByLocation(selectedDivision, "", "",
+                    new BranchRepository.BranchCallback() {
+                        @Override
+                        public void onSuccess(List<Branch> branches) {
+                            binding.progressBar.setVisibility(View.GONE);
+                            applySearchFilter(branches, query);
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            binding.progressBar.setVisibility(View.GONE);
+                        }
+                    });
+        }
     }
 
-    private void searchBranches(String query) {
-        BranchRepository.getInstance().searchBranches(query, new BranchRepository.BranchCallback() {
-            @Override
-            public void onSuccess(List<Branch> branches) {
-                updateList(branches);
+    private void applySearchFilter(List<Branch> branches, String query) {
+        if (query.isEmpty()) {
+            allFilteredBranches = new ArrayList<>(branches);
+        } else {
+            allFilteredBranches = new ArrayList<>();
+            for (Branch b : branches) {
+                if (b.getName().toLowerCase().contains(query) ||
+                        b.getDivision().toLowerCase().contains(query) ||
+                        b.getDistrict().toLowerCase().contains(query)) {
+                    allFilteredBranches.add(b);
+                }
             }
-
-            @Override
-            public void onError(String message) {}
-        });
+        }
+        currentDisplayCount = PAGE_SIZE;
+        updateDisplayedList();
     }
 
-    private void updateList(List<Branch> branches) {
-        adapter.submitList(branches);
-        binding.textViewEmpty.setVisibility(branches.isEmpty() ? View.VISIBLE : View.GONE);
-        binding.recyclerViewBranches.setVisibility(branches.isEmpty() ? View.GONE : View.VISIBLE);
+    private void updateDisplayedList() {
+        int totalCount = allFilteredBranches.size();
+        int displayCount = Math.min(currentDisplayCount, totalCount);
+        
+        List<Branch> displayList = allFilteredBranches.subList(0, displayCount);
+        adapter.submitList(new ArrayList<>(displayList));
+        
+        binding.textViewEmpty.setVisibility(totalCount == 0 ? View.VISIBLE : View.GONE);
+        binding.recyclerViewBranches.setVisibility(totalCount == 0 ? View.GONE : View.VISIBLE);
+        
+        // Update pagination UI
+        binding.textViewShowingCount.setText(getString(R.string.showing_x_of_y, displayCount, totalCount));
+        binding.buttonLoadMore.setVisibility(displayCount < totalCount ? View.VISIBLE : View.GONE);
+        binding.paginationSection.setVisibility(totalCount > 0 ? View.VISIBLE : View.GONE);
     }
 
     @Override

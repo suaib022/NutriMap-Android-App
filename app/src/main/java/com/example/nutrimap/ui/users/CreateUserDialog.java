@@ -75,13 +75,25 @@ public class CreateUserDialog extends DialogFragment {
             }
 
             User user = new User(0, name, email, password, role);
-            UserRepository.getInstance().addUser(user);
-            Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+            UserRepository.getInstance().addUser(user, new UserRepository.UserCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                    }
+                    if (listener != null) {
+                        listener.onUserCreated();
+                    }
+                    dismiss();
+                }
 
-            if (listener != null) {
-                listener.onUserCreated();
-            }
-            dismiss();
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
     }
 

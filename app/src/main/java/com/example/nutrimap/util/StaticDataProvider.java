@@ -40,14 +40,14 @@ public class StaticDataProvider {
 
     private List<User> createMockUsers() {
         List<User> list = new ArrayList<>();
-        list.add(new User(1, "Admin User", "admin@nutrimap.com", "admin123", "ADMIN", ""));
-        list.add(new User(2, "Rafiq Hasan", "rafiq.hasan@example.com", "pass@2025", "USER", ""));
-        list.add(new User(3, "Ayesha Rahman", "ayesha.rahman@example.com", "ayesha123", "USER", ""));
-        list.add(new User(4, "Sakib Hossain", "sakib.hossain@example.com", "sakib@bd", "USER", ""));
-        list.add(new User(5, "Nusrat Jahan", "nusrat.jahan@example.com", "nusrat456", "USER", ""));
-        list.add(new User(6, "Imran Ahmed", "imran.ahmed@example.com", "imran789", "USER", ""));
-        list.add(new User(7, "Sharmin Akter", "sharmin.akter@example.com", "sharmin@1", "USER", ""));
-        list.add(new User(8, "Mehedi Hasan", "mehedi.hasan@example.com", "mehedi2025", "USER", ""));
+        list.add(new User(1, "Admin User", "admin@nutrimap.com", "admin123", "ADMIN", "", null));
+        list.add(new User(2, "Rafiq Hasan", "rafiq.hasan@example.com", "pass@2025", "USER", "", "1"));
+        list.add(new User(3, "Ayesha Rahman", "ayesha.rahman@example.com", "ayesha123", "USER", "", "1"));
+        list.add(new User(4, "Sakib Hossain", "sakib.hossain@example.com", "sakib@bd", "USER", "", "2"));
+        list.add(new User(5, "Nusrat Jahan", "nusrat.jahan@example.com", "nusrat456", "USER", "", "3"));
+        list.add(new User(6, "Imran Ahmed", "imran.ahmed@example.com", "imran789", "USER", "", "100"));
+        list.add(new User(7, "Sharmin Akter", "sharmin.akter@example.com", "sharmin@1", "USER", "", "50"));
+        list.add(new User(8, "Mehedi Hasan", "mehedi.hasan@example.com", "mehedi2025", "USER", "", "55"));
         return list;
     }
 

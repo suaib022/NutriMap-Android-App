@@ -1,17 +1,16 @@
 package com.example.nutrimap.data.repository;
 
-import com.example.nutrimap.domain.model.Child;
+import com.example.nutrimap.data.firebase.FirebaseDataService;
 import com.example.nutrimap.domain.model.Visit;
-import com.example.nutrimap.domain.util.NutritionRiskCalculator;
-import com.example.nutrimap.util.StaticDataProvider;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Repository for visit data access.
+ * Repository for visit data access using Firebase Firestore.
  */
 public class VisitRepository {
 
@@ -26,76 +25,191 @@ public class VisitRepository {
         return instance;
     }
 
-    public List<Visit> getAllVisits() {
-        return StaticDataProvider.getInstance().getVisits();
+    // Callback interfaces
+    public interface VisitsCallback {
+        void onSuccess(List<Visit> visits);
+        void onError(String message);
     }
 
-    public List<Visit> searchVisits(String query) {
-        if (query == null || query.isEmpty()) {
-            return getAllVisits();
-        }
+    public interface VisitCallback {
+        void onSuccess(Visit visit);
+        void onError(String message);
+    }
 
-        String lowerQuery = query.toLowerCase();
-        List<Visit> result = new ArrayList<>();
-        for (Visit v : getAllVisits()) {
-            // Search by child name
-            Child child = StaticDataProvider.getInstance().getChildById(v.getChildId());
-            if (child != null && child.getName().toLowerCase().contains(lowerQuery)) {
-                result.add(v);
-            } else if (v.getVisitDate().contains(lowerQuery)) {
-                result.add(v);
-            } else if (v.getNotes() != null && v.getNotes().toLowerCase().contains(lowerQuery)) {
-                result.add(v);
+    public interface OperationCallback {
+        void onSuccess();
+        void onError(String message);
+    }
+
+    public interface CountCallback {
+        void onSuccess(int count);
+        void onError(String message);
+    }
+
+    // ==================== FIREBASE CRUD ====================
+
+    public void getAllVisits(VisitsCallback callback) {
+        FirebaseDataService.getInstance().getAllVisits(new FirebaseDataService.DataCallback<List<Visit>>() {
+            @Override
+            public void onSuccess(List<Visit> data) {
+                callback.onSuccess(data);
             }
-        }
-        return result;
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    public List<Visit> getVisitsForChild(int childId) {
-        return StaticDataProvider.getInstance().getVisitsForChild(childId);
+    public void getVisitsForChild(String childDocumentId, VisitsCallback callback) {
+        FirebaseDataService.getInstance().getVisitsForChild(childDocumentId, new FirebaseDataService.DataCallback<List<Visit>>() {
+            @Override
+            public void onSuccess(List<Visit> data) {
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    public Visit getLatestVisitForChild(int childId) {
-        return StaticDataProvider.getInstance().getLatestVisitForChild(childId);
+    public void addVisit(Visit visit, VisitCallback callback) {
+        FirebaseDataService.getInstance().addVisit(visit, new FirebaseDataService.DataCallback<Visit>() {
+            @Override
+            public void onSuccess(Visit data) {
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    public Visit addVisit(Visit visit) {
-        return StaticDataProvider.getInstance().addVisit(visit);
+    public void updateVisit(Visit visit, OperationCallback callback) {
+        FirebaseDataService.getInstance().updateVisit(visit, new FirebaseDataService.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    public void updateVisit(Visit visit) {
-        StaticDataProvider.getInstance().updateVisit(visit);
+    public void deleteVisit(String documentId, OperationCallback callback) {
+        FirebaseDataService.getInstance().deleteVisit(documentId, new FirebaseDataService.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    public int getTotalVisitCount() {
-        return getAllVisits().size();
+    // ==================== SEARCH AND FILTER ====================
+
+    public void searchVisits(String query, VisitsCallback callback) {
+        getAllVisits(new VisitsCallback() {
+            @Override
+            public void onSuccess(List<Visit> visits) {
+                if (query == null || query.isEmpty()) {
+                    callback.onSuccess(visits);
+                    return;
+                }
+                String lowerQuery = query.toLowerCase();
+                List<Visit> result = new ArrayList<>();
+                for (Visit v : visits) {
+                    String notes = v.getNotes() != null ? v.getNotes().toLowerCase() : "";
+                    if (v.getVisitDate().contains(query) || notes.contains(lowerQuery)) {
+                        result.add(v);
+                    }
+                }
+                callback.onSuccess(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    /**
-     * Get visits per month for chart display.
-     * @return Map of month (yyyy-MM) to visit count
-     */
-    public Map<String, Integer> getVisitsPerMonth() {
-        Map<String, Integer> result = new HashMap<>();
-        for (Visit v : getAllVisits()) {
-            String month = v.getVisitDate().substring(0, 7); // yyyy-MM
-            result.put(month, result.getOrDefault(month, 0) + 1);
-        }
-        return result;
+    public void getLatestVisitForChild(String childDocumentId, VisitCallback callback) {
+        getVisitsForChild(childDocumentId, new VisitsCallback() {
+            @Override
+            public void onSuccess(List<Visit> visits) {
+                Visit latest = null;
+                for (Visit v : visits) {
+                    if (latest == null || v.getVisitDate().compareTo(latest.getVisitDate()) > 0) {
+                        latest = v;
+                    }
+                }
+                if (latest != null) {
+                    callback.onSuccess(latest);
+                } else {
+                    callback.onError("No visits found");
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    /**
-     * Get child name for a visit.
-     */
-    public String getChildNameForVisit(int childId) {
-        Child child = StaticDataProvider.getInstance().getChildById(childId);
-        return child != null ? child.getName() : "Unknown";
+    // ==================== STATISTICS ====================
+
+    public void getTotalVisitCount(CountCallback callback) {
+        getAllVisits(new VisitsCallback() {
+            @Override
+            public void onSuccess(List<Visit> visits) {
+                callback.onSuccess(visits.size());
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
-    /**
-     * Calculate risk level for a visit.
-     */
-    public String getRiskLevelForVisit(Visit visit) {
-        return NutritionRiskCalculator.calculateRiskFromMuac(visit.getMuacMm());
+    public void getVisitsPerMonth(VisitsPerMonthCallback callback) {
+        getAllVisits(new VisitsCallback() {
+            @Override
+            public void onSuccess(List<Visit> visits) {
+                Map<String, Integer> monthCounts = new HashMap<>();
+                for (Visit v : visits) {
+                    String date = v.getVisitDate();
+                    if (date != null && date.length() >= 7) {
+                        String month = date.substring(0, 7); // yyyy-MM
+                        monthCounts.put(month, monthCounts.getOrDefault(month, 0) + 1);
+                    }
+                }
+                callback.onSuccess(monthCounts);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public interface VisitsPerMonthCallback {
+        void onSuccess(Map<String, Integer> monthCounts);
+        void onError(String message);
     }
 }

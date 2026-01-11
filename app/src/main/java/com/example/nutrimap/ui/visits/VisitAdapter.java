@@ -12,16 +12,27 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nutrimap.R;
-import com.example.nutrimap.data.repository.VisitRepository;
+import com.example.nutrimap.domain.model.Child;
 import com.example.nutrimap.domain.model.Visit;
 import com.example.nutrimap.domain.util.NutritionRiskCalculator;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
+
+    private Map<String, String> childNames = new HashMap<>();
 
     private static final DiffUtil.ItemCallback<Visit> DIFF_CALLBACK = new DiffUtil.ItemCallback<Visit>() {
         @Override
         public boolean areItemsTheSame(@NonNull Visit oldItem, @NonNull Visit newItem) {
-            return oldItem.getId() == newItem.getId();
+            String oldId = oldItem.getDocumentId();
+            String newId = newItem.getDocumentId();
+            if (oldId == null || newId == null) {
+                return oldItem.getId() == newItem.getId();
+            }
+            return oldId.equals(newId);
         }
 
         @Override
@@ -34,6 +45,26 @@ public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
         super(DIFF_CALLBACK);
     }
 
+    /**
+     * Set child names map for displaying child name in visit cards.
+     */
+    public void setChildNames(Map<String, String> names) {
+        this.childNames = names;
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Build child names map from a list of children.
+     */
+    public void loadChildNamesFromList(List<Child> children) {
+        childNames.clear();
+        for (Child child : children) {
+            if (child.getDocumentId() != null) {
+                childNames.put(child.getDocumentId(), child.getName());
+            }
+        }
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -44,7 +75,7 @@ public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(getItem(position));
+        holder.bind(getItem(position), childNames);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -62,8 +93,13 @@ public class VisitAdapter extends ListAdapter<Visit, VisitAdapter.ViewHolder> {
             textViewNotes = itemView.findViewById(R.id.textViewNotes);
         }
 
-        void bind(Visit visit) {
-            String childName = VisitRepository.getInstance().getChildNameForVisit(visit.getChildId());
+        void bind(Visit visit, Map<String, String> childNames) {
+            // Get child name from pre-loaded map
+            String childName = "Child";
+            if (visit.getChildDocumentId() != null && childNames.containsKey(visit.getChildDocumentId())) {
+                childName = childNames.get(visit.getChildDocumentId());
+            }
+            
             textViewChildName.setText(childName);
             textViewDate.setText("Date: " + visit.getVisitDate());
             textViewWeight.setText("Weight: " + visit.getWeightKg() + " kg");

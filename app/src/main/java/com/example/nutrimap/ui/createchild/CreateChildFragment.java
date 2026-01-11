@@ -30,7 +30,8 @@ import java.util.List;
 public class CreateChildFragment extends Fragment {
 
     private FragmentCreateChildBinding binding;
-    private int childId = -1;
+    private String childDocumentId = "";
+    private Child existingChild = null;
     private List<Division> divisions = new ArrayList<>();
     private List<District> districts = new ArrayList<>();
     private List<Upazila> upazilas = new ArrayList<>();
@@ -49,7 +50,7 @@ public class CreateChildFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         
         if (getArguments() != null) {
-            childId = getArguments().getInt("childId", -1);
+            childDocumentId = getArguments().getString("childDocumentId", "");
         }
 
         setupGenderSpinner();
@@ -57,7 +58,7 @@ public class CreateChildFragment extends Fragment {
         setupLocationSpinners();
         setupSaveButton();
 
-        if (childId > 0) {
+        if (!childDocumentId.isEmpty()) {
             loadChild();
         }
     }
@@ -87,8 +88,10 @@ public class CreateChildFragment extends Fragment {
                 divisions = divs;
                 List<String> names = new ArrayList<>();
                 for (Division d : divs) names.add(d.getName());
-                binding.spinnerDivision.setAdapter(new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_dropdown_item_1line, names));
+                if (getContext() != null) {
+                    binding.spinnerDivision.setAdapter(new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_dropdown_item_1line, names));
+                }
             }
             @Override
             public void onError(String message) {}
@@ -121,11 +124,13 @@ public class CreateChildFragment extends Fragment {
                 districts = dists;
                 List<String> names = new ArrayList<>();
                 for (District d : dists) names.add(d.getName());
-                binding.spinnerDistrict.setAdapter(new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_dropdown_item_1line, names));
-                binding.spinnerDistrict.setText("", false);
-                binding.spinnerUpazila.setText("", false);
-                binding.spinnerUnion.setText("", false);
+                if (getContext() != null) {
+                    binding.spinnerDistrict.setAdapter(new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_dropdown_item_1line, names));
+                    binding.spinnerDistrict.setText("", false);
+                    binding.spinnerUpazila.setText("", false);
+                    binding.spinnerUnion.setText("", false);
+                }
             }
             @Override
             public void onError(String message) {}
@@ -139,10 +144,12 @@ public class CreateChildFragment extends Fragment {
                 upazilas = ups;
                 List<String> names = new ArrayList<>();
                 for (Upazila u : ups) names.add(u.getName());
-                binding.spinnerUpazila.setAdapter(new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_dropdown_item_1line, names));
-                binding.spinnerUpazila.setText("", false);
-                binding.spinnerUnion.setText("", false);
+                if (getContext() != null) {
+                    binding.spinnerUpazila.setAdapter(new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_dropdown_item_1line, names));
+                    binding.spinnerUpazila.setText("", false);
+                    binding.spinnerUnion.setText("", false);
+                }
             }
             @Override
             public void onError(String message) {}
@@ -156,9 +163,11 @@ public class CreateChildFragment extends Fragment {
                 unions = uns;
                 List<String> names = new ArrayList<>();
                 for (Union u : uns) names.add(u.getName());
-                binding.spinnerUnion.setAdapter(new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_dropdown_item_1line, names));
-                binding.spinnerUnion.setText("", false);
+                if (getContext() != null) {
+                    binding.spinnerUnion.setAdapter(new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_dropdown_item_1line, names));
+                    binding.spinnerUnion.setText("", false);
+                }
             }
             @Override
             public void onError(String message) {}
@@ -166,15 +175,33 @@ public class CreateChildFragment extends Fragment {
     }
 
     private void loadChild() {
-        Child child = ChildRepository.getInstance().getChildById(childId);
-        if (child != null) {
-            binding.editTextName.setText(child.getName());
-            binding.editTextFatherName.setText(child.getFatherName());
-            binding.editTextMotherName.setText(child.getMotherName());
-            binding.editTextContact.setText(child.getContact());
-            binding.editTextDob.setText(child.getDateOfBirth());
-            binding.spinnerGender.setText(child.getGender(), false);
-        }
+        ChildRepository.getInstance().getChildById(childDocumentId, new ChildRepository.ChildCallback() {
+            @Override
+            public void onSuccess(Child child) {
+                existingChild = child;
+                if (binding != null) {
+                    binding.editTextName.setText(child.getName());
+                    binding.editTextFatherName.setText(child.getFatherName());
+                    binding.editTextMotherName.setText(child.getMotherName());
+                    binding.editTextContact.setText(child.getContact());
+                    binding.editTextDob.setText(child.getDateOfBirth());
+                    binding.spinnerGender.setText(child.getGender(), false);
+                    
+                    // Store existing location IDs
+                    selectedDivisionId = child.getDivisionId();
+                    selectedDistrictId = child.getDistrictId();
+                    selectedUpazilaId = child.getUpazilaId();
+                    selectedUnionId = child.getUnionId();
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                if (getContext() != null) {
+                    Toast.makeText(requireContext(), "Error loading child: " + message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void setupSaveButton() {
@@ -189,7 +216,7 @@ public class CreateChildFragment extends Fragment {
         }
 
         Child child = new Child(
-                childId > 0 ? childId : 0,
+                0,
                 name,
                 binding.editTextFatherName.getText().toString().trim(),
                 binding.editTextMotherName.getText().toString().trim(),
@@ -203,14 +230,42 @@ public class CreateChildFragment extends Fragment {
                 "1"
         );
 
-        if (childId > 0) {
-            ChildRepository.getInstance().updateChild(child);
-        } else {
-            ChildRepository.getInstance().addChild(child);
-        }
+        if (!childDocumentId.isEmpty() && existingChild != null) {
+            child.setDocumentId(childDocumentId);
+            ChildRepository.getInstance().updateChild(child, new ChildRepository.OperationCallback() {
+                @Override
+                public void onSuccess() {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                        Navigation.findNavController(requireView()).popBackStack();
+                    }
+                }
 
-        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
-        Navigation.findNavController(requireView()).popBackStack();
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } else {
+            ChildRepository.getInstance().addChild(child, new ChildRepository.ChildCallback() {
+                @Override
+                public void onSuccess(Child newChild) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
+                        Navigation.findNavController(requireView()).popBackStack();
+                    }
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (getContext() != null) {
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     @Override

@@ -2,11 +2,13 @@ package com.example.nutrimap.domain.model;
 
 public class User {
     private int id;
+    private String documentId; // Firestore document ID
     private String name;
     private String email;
     private String password;
     private String role;
     private String imagePath;
+    private String branchId;
 
     public User() {}
 
@@ -27,6 +29,16 @@ public class User {
         this.imagePath = imagePath;
     }
 
+    public User(int id, String name, String email, String password, String role, String imagePath, String branchId) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.imagePath = imagePath;
+        this.branchId = branchId;
+    }
+
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -45,6 +57,12 @@ public class User {
 
     public String getImagePath() { return imagePath; }
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public String getBranchId() { return branchId; }
+    public void setBranchId(String branchId) { this.branchId = branchId; }
+
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
 
     public boolean isAdmin() {
         return "ADMIN".equalsIgnoreCase(role);

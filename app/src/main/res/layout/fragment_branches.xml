@@ -25,18 +25,18 @@
             android:paddingEnd="16dp"
             android:textSize="14sp" />
 
-        <!-- Location Filters -->
+        <!-- Division Filter -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.NutriMap.Spinner"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:hint="@string/label_division">
 
@@ -49,32 +49,15 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.NutriMap.Spinner"
-                android:layout_width="0dp"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonReset"
+                style="@style/Widget.NutriMap.Button.Text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/label_district">
-
-                <AutoCompleteTextView
-                    android:id="@+id/spinnerDistrict"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:textSize="13sp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_reset" />
 
         </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonReset"
-            style="@style/Widget.NutriMap.Button.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:text="@string/btn_reset" />
 
     </LinearLayout>
 
@@ -102,5 +85,34 @@
         android:text="@string/no_data"
         android:textColor="@color/colorTextSecondary"
         android:visibility="gone" />
+
+    <!-- Pagination Controls -->
+    <LinearLayout
+        android:id="@+id/paginationSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorSurface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/textViewShowingCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Showing 0 of 0"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLoadMore"
+            style="@style/Widget.NutriMap.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Load More"
+            android:textSize="12sp" />
+
+    </LinearLayout>
 
 </LinearLayout>
