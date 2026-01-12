@@ -271,19 +271,27 @@ public class FirebaseDataService {
     // ==================== SAMPLE DATA SEEDING ====================
 
     public void seedSampleData(OperationCallback callback) {
-        // Check if data already exists
-        db.collection(COLLECTION_CHILDREN).limit(1).get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (querySnapshot.isEmpty()) {
-                        seedChildren();
-                        seedUsers();
-                        seedVisits();
-                        callback.onSuccess();
-                    } else {
-                        callback.onSuccess(); // Data already exists
-                    }
-                })
-                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+        // Always reseed users to ensure correct credentials
+        deleteAllUsersAndSeedDefaults(new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                // Check if children data exists
+                db.collection(COLLECTION_CHILDREN).limit(1).get()
+                        .addOnSuccessListener(querySnapshot -> {
+                            if (querySnapshot.isEmpty()) {
+                                seedChildren();
+                                seedVisits();
+                            }
+                            callback.onSuccess();
+                        })
+                        .addOnFailureListener(e -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
     private void seedChildren() {
@@ -338,10 +346,27 @@ public class FirebaseDataService {
     private void seedUsers() {
         CollectionReference ref = db.collection(COLLECTION_USERS);
         
-        ref.add(new User(0, "Admin User", "admin@nutrimap.com", "admin123", "ADMIN", "", null));
-        ref.add(new User(0, "Rafiq Hasan", "rafiq.hasan@example.com", "pass@2025", "USER", "", "1"));
-        ref.add(new User(0, "Ayesha Rahman", "ayesha.rahman@example.com", "ayesha123", "USER", "", "1"));
-        ref.add(new User(0, "Sakib Hossain", "sakib.hossain@example.com", "sakib@bd", "USER", "", "2"));
+        // Admin - Full access
+        ref.add(new User(0, "Safi", "ssa@gmail.com", "s12345", "ADMIN", "", null));
+        // Supervisor - All access except Users
+        ref.add(new User(0, "Abdul", "abd@gmail.com", "a12345", "SUPERVISOR", "", null));
+        // Field Worker - Only Children and Visits
+        ref.add(new User(0, "Nafi", "nfa@gmail.com", "n12345", "FIELD_WORKER", "", null));
+    }
+
+    public void deleteAllUsersAndSeedDefaults(OperationCallback callback) {
+        db.collection(COLLECTION_USERS)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    // Delete all existing users
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        doc.getReference().delete();
+                    }
+                    // Seed default users after deletion
+                    seedUsers();
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     private void seedVisits() {

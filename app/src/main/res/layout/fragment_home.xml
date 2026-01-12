@@ -262,42 +262,50 @@
 
         <!-- Area Summary Section -->
         <LinearLayout
+            android:id="@+id/sectionAreaSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                style="@style/Widget.NutriMap.SectionHeader"
-                android:text="@string/section_area_summary" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.NutriMap.Spinner"
-                android:layout_width="140dp"
-                android:layout_height="wrap_content"
-                android:hint="@string/label_division">
-
-                <AutoCompleteTextView
-                    android:id="@+id/spinnerAreaDivision"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:textSize="12sp" />
+                    android:layout_weight="1"
+                    style="@style/Widget.NutriMap.SectionHeader"
+                    android:text="@string/section_area_summary" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriMap.Spinner"
+                    android:layout_width="140dp"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/label_division">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerAreaDivision"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textSize="12sp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewAreaSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false" />
 
         </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewAreaSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:nestedScrollingEnabled="false" />
 
     </LinearLayout>
 

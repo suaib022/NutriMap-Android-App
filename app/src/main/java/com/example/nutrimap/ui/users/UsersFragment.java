@@ -20,6 +20,7 @@ import com.example.nutrimap.data.repository.UserRepository;
 import com.example.nutrimap.databinding.FragmentUsersBinding;
 import com.example.nutrimap.domain.model.Branch;
 import com.example.nutrimap.domain.model.User;
+import com.example.nutrimap.ui.main.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,18 +184,27 @@ public class UsersFragment extends Fragment implements UserAdapter.OnUserActionL
     }
 
     private void applySearchToList(List<User> users, String query) {
-        if (query.isEmpty()) {
-            allFilteredUsers = users;
-        } else {
-            List<User> searchFiltered = new ArrayList<>();
-            for (User u : users) {
-                if (u.getName().toLowerCase().contains(query) ||
-                        u.getEmail().toLowerCase().contains(query)) {
-                    searchFiltered.add(u);
-                }
-            }
-            allFilteredUsers = searchFiltered;
+        // Get current logged-in user email
+        String currentUserEmail = "";
+        if (getActivity() instanceof MainActivity) {
+            currentUserEmail = ((MainActivity) getActivity()).getCurrentUserEmail();
         }
+        
+        List<User> filteredList = new ArrayList<>();
+        for (User u : users) {
+            // Exclude current logged-in user from the list
+            if (u.getEmail() != null && u.getEmail().equals(currentUserEmail)) {
+                continue;
+            }
+            
+            // Apply search filter
+            if (query.isEmpty() || 
+                    u.getName().toLowerCase().contains(query) ||
+                    u.getEmail().toLowerCase().contains(query)) {
+                filteredList.add(u);
+            }
+        }
+        allFilteredUsers = filteredList;
         currentDisplayCount = PAGE_SIZE;
         updateDisplayedList();
     }

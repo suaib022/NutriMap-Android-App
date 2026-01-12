@@ -11,8 +11,11 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.nutrimap.R;
 import com.example.nutrimap.domain.model.User;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserAdapter extends ListAdapter<User, UserAdapter.ViewHolder> {
 
@@ -25,6 +28,9 @@ public class UserAdapter extends ListAdapter<User, UserAdapter.ViewHolder> {
     private static final DiffUtil.ItemCallback<User> DIFF_CALLBACK = new DiffUtil.ItemCallback<User>() {
         @Override
         public boolean areItemsTheSame(@NonNull User oldItem, @NonNull User newItem) {
+            if (oldItem.getDocumentId() != null && newItem.getDocumentId() != null) {
+                return oldItem.getDocumentId().equals(newItem.getDocumentId());
+            }
             return oldItem.getId() == newItem.getId();
         }
 
@@ -53,11 +59,13 @@ public class UserAdapter extends ListAdapter<User, UserAdapter.ViewHolder> {
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        private final CircleImageView imageViewUser;
         private final TextView textViewName, textViewEmail, textViewRole;
         private final ImageButton buttonView;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            imageViewUser = itemView.findViewById(R.id.imageViewUser);
             textViewName = itemView.findViewById(R.id.textViewName);
             textViewEmail = itemView.findViewById(R.id.textViewEmail);
             textViewRole = itemView.findViewById(R.id.textViewRole);
@@ -68,6 +76,17 @@ public class UserAdapter extends ListAdapter<User, UserAdapter.ViewHolder> {
             textViewName.setText(user.getName());
             textViewEmail.setText(user.getEmail());
             textViewRole.setText(user.getRole());
+
+            // Load user image
+            if (user.getImagePath() != null && !user.getImagePath().isEmpty()) {
+                Glide.with(itemView.getContext())
+                        .load(user.getImagePath())
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .error(R.drawable.ic_launcher_foreground)
+                        .into(imageViewUser);
+            } else {
+                imageViewUser.setImageResource(R.drawable.ic_launcher_foreground);
+            }
 
             buttonView.setOnClickListener(v -> listener.onViewUser(user));
             itemView.setOnClickListener(v -> listener.onViewUser(user));

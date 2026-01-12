@@ -19,31 +19,17 @@ public class Child {
     private String branchName;
     private String lastVisit; 
     
-    // Keeping existing ID fields if needed for DB, but spec doesn't mention them explicitly in the data class snippet? 
-    // Spec: division: String, district: String...
-    // Existing: divisionId, districtId... 
-    // I will KEEP existing ID fields to avoid breaking other code, and ADD the spec fields. 
-    // Actually the spec defines the data class. 
-    // Let's renaming existing fields to match spec where possible and add missing.
     
     private String gender;
     private String dateOfBirth;
 
-    // Legacy/Existing IDs - Keeping them but maybe they are not needed if we follow spec exactly? 
-    // The spec data class might be a "view" model or the actual entity. 
-    // If I change 'name' to 'fullName', it might break existing code. 
-    // I will refactor to match spec.
-    
-    // Re-declaring all fields to match spec EXACTLY + keep necessary IDs (like divisionId etc if they are distinct).
-    // Spec: division: String. Existing: divisionId. 
-    // I will assume spec 'division' means the name, but existing uses ID. 
-    // I will add the spec fields.
 
     private String divisionId;
     private String districtId;
     private String upazilaId;
     private String unionId;
     private String branchId;
+    private String imagePath;
 
     public Child() {}
 
@@ -140,6 +126,9 @@ public class Child {
 
     public String getUnionId() { return unionId; }
     public void setUnionId(String unionId) { this.unionId = unionId; }
+
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 
     // Helpers
     public int getAgeInMonths() {

@@ -41,6 +41,7 @@
     <color name="colorCardBackground">#FFFFFF</color>
     <color name="colorDivider">#E0E0E0</color>
     <color name="colorCardShadow">#1A000000</color>
+    <color name="colorRoleBadge">#333333</color>
 
     <!-- Input Colors -->
     <color name="colorInputBackground">#F5F5F5</color>

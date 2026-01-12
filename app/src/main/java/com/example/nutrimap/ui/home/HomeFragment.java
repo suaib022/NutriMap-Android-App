@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.example.nutrimap.ui.main.MainActivity;
+
 /**
  * Home/Dashboard fragment displaying statistics and charts.
  */
@@ -68,6 +70,19 @@ public class HomeFragment extends Fragment {
         setupAreaDivisionFilter();
         loadDashboardData();
         loadDivisionsAndAreaSummary();
+        applyRoleBasedVisibility();
+    }
+
+    /**
+     * Hide area summary section for field workers
+     */
+    private void applyRoleBasedVisibility() {
+        com.example.nutrimap.data.session.SessionManager sessionManager = 
+                com.example.nutrimap.data.session.SessionManager.getInstance(requireContext());
+        if (sessionManager.isFieldWorker()) {
+            // Hide area summary section for field workers
+            binding.sectionAreaSummary.setVisibility(View.GONE);
+        }
     }
 
     private void setupAreaDivisionFilter() {

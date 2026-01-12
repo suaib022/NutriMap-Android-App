@@ -119,6 +119,25 @@
     <!-- Profile -->
     <string name="profile_title">Profile</string>
     <string name="btn_logout">Log Out</string>
+    <string name="profile_change_photo">Change Photo</string>
+    <string name="profile_section_personal">Personal Information</string>
+    <string name="profile_full_name">Full Name</string>
+    <string name="profile_hint_full_name">Enter your name</string>
+    <string name="profile_email_address">Email Address</string>
+    <string name="profile_email_note">Email cannot be changed.</string>
+    <string name="profile_save_changes">Save Changes</string>
+    <string name="profile_section_security">Security</string>
+    <string name="profile_current_password">Current Password</string>
+    <string name="profile_hint_current_password">Enter current password</string>
+    <string name="profile_new_password">New Password</string>
+    <string name="profile_hint_new_password">Enter new password</string>
+    <string name="profile_confirm_password">Confirm New Password</string>
+    <string name="profile_hint_confirm_password">Confirm new password</string>
+    <string name="profile_change_password">Change Password</string>
+    <string name="profile_password_success">Password changed successfully</string>
+    <string name="profile_password_mismatch">Passwords do not match</string>
+    <string name="profile_password_empty">Please fill in all password fields</string>
+    <string name="profile_name_saved">Name saved successfully</string>
 
     <!-- Risk Levels -->
     <string name="risk_high">High</string>

@@ -1,0 +1,12 @@
+{
+  "name": "nutrimap-firebase-scripts",
+  "version": "1.0.0",
+  "description": "Firebase data population scripts for NutriMap",
+  "type": "commonjs",
+  "scripts": {
+    "populate": "node populate_firebase.js"
+  },
+  "dependencies": {
+    "firebase": "^10.7.0"
+  }
+}

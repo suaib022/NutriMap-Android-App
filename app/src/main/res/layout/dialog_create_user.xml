@@ -18,6 +18,35 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <!-- Profile Image Picker -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imageViewUser"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@android:drawable/ic_menu_camera"
+                app:civ_border_width="2dp"
+                app:civ_border_color="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/textViewSelectPhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/profile_change_photo"
+                android:textColor="@color/colorPrimary"
+                android:textSize="13sp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.NutriMap.TextInputLayout"
             android:layout_width="match_parent"

@@ -2,6 +2,7 @@ package com.example.nutrimap.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -12,15 +13,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.nutrimap.R;
-import com.example.nutrimap.data.repository.UserRepository;
+import com.example.nutrimap.data.session.SessionManager;
 import com.example.nutrimap.databinding.ActivityMainBinding;
-import com.example.nutrimap.domain.model.User;
 import com.example.nutrimap.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
 
@@ -29,14 +28,20 @@ import java.util.Set;
 
 /**
  * Main activity hosting the navigation drawer and fragment container.
+ * Implements role-based navigation visibility using SessionManager.
  */
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    // Role constants
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_SUPERVISOR = "SUPERVISOR";
+    public static final String ROLE_FIELD_WORKER = "FIELD_WORKER";
 
     private ActivityMainBinding binding;
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private ActionBarDrawerToggle toggle;
-    private String currentUserEmail;
+    private SessionManager sessionManager;
     private Set<Integer> topLevelDestinations;
 
     @Override
@@ -45,15 +50,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Get user email from intent
-        currentUserEmail = getIntent().getStringExtra("user_email");
-        if (currentUserEmail == null) {
-            currentUserEmail = "admin@nutrimap.com";
+        sessionManager = SessionManager.getInstance(this);
+
+        // Check if user is logged in
+        if (!sessionManager.isLoggedIn()) {
+            navigateToLogin();
+            return;
         }
 
         setupToolbar();
         setupNavigation();
         updateNavHeader();
+        applyRoleBasedNavigation();
     }
 
     private void setupToolbar() {
@@ -116,28 +124,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    /**
+     * Apply role-based visibility to navigation menu items.
+     * - Admin: Full access
+     * - Supervisor: All except Users
+     * - Field Worker: Only Home, Children, Visits, Profile
+     */
+    private void applyRoleBasedNavigation() {
+        Menu navMenu = binding.navigationView.getMenu();
+        String role = sessionManager.getUserRole();
+        
+        if (ROLE_FIELD_WORKER.equalsIgnoreCase(role)) {
+            // Field worker: hide Users and Branches
+            navMenu.findItem(R.id.nav_users).setVisible(false);
+            navMenu.findItem(R.id.nav_branches).setVisible(false);
+        } else if (ROLE_SUPERVISOR.equalsIgnoreCase(role)) {
+            // Supervisor: hide Users only
+            navMenu.findItem(R.id.nav_users).setVisible(false);
+        }
+        // Admin: show all (default)
+    }
+
     private void updateNavHeader() {
         View headerView = binding.navigationView.getHeaderView(0);
         TextView textViewUserName = headerView.findViewById(R.id.textViewUserName);
         TextView textViewUserEmail = headerView.findViewById(R.id.textViewUserEmail);
 
-        // Set default values first
-        textViewUserName.setText("NutriMap User");
-        textViewUserEmail.setText(currentUserEmail);
-        
-        // Try to load user details async
-        UserRepository.getInstance().getUserByEmail(currentUserEmail, new UserRepository.UserCallback() {
-            @Override
-            public void onSuccess(User user) {
-                textViewUserName.setText(user.getName());
-                textViewUserEmail.setText(user.getEmail());
-            }
-
-            @Override
-            public void onError(String message) {
-                // Keep default values
-            }
-        });
+        // Set values from session
+        textViewUserName.setText(sessionManager.getUserName());
+        textViewUserEmail.setText(sessionManager.getUserEmail());
     }
 
     @Override
@@ -165,6 +180,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void logout() {
+        sessionManager.logout();
+        navigateToLogin();
+    }
+
+    private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -187,6 +207,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public String getCurrentUserEmail() {
-        return currentUserEmail;
+        return sessionManager.getUserEmail();
+    }
+
+    public String getCurrentUserRole() {
+        return sessionManager.getUserRole();
+    }
+
+    public boolean isAdmin() {
+        return sessionManager.isAdmin();
+    }
+
+    public boolean isSupervisor() {
+        return sessionManager.isSupervisor();
+    }
+
+    public boolean isFieldWorker() {
+        return sessionManager.isFieldWorker();
     }
 }

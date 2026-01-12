@@ -38,6 +38,47 @@ public class UserRepository {
         void onError(String message);
     }
 
+    public interface LoginCallback {
+        void onSuccess(User user);
+        void onInvalidCredentials();
+        void onError(String message);
+    }
+
+    // ==================== AUTHENTICATION ====================
+
+    public void validateCredentials(String email, String password, LoginCallback callback) {
+        FirebaseDataService.getInstance().getUserByEmail(email, new FirebaseDataService.DataCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                if (user.getPassword() != null && user.getPassword().equals(password)) {
+                    callback.onSuccess(user);
+                } else {
+                    callback.onInvalidCredentials();
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                // User not found - invalid credentials
+                callback.onInvalidCredentials();
+            }
+        });
+    }
+
+    public void deleteAllUsersAndSeedDefaults(OperationCallback callback) {
+        FirebaseDataService.getInstance().deleteAllUsersAndSeedDefaults(new FirebaseDataService.OperationCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
     // ==================== FIREBASE CRUD ====================
 
     public void getAllUsers(UsersCallback callback) {
