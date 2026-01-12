@@ -165,13 +165,18 @@ public class FirebaseDataService {
     }
 
     public void addUser(User user, DataCallback<User> callback) {
+        Log.d(TAG, "Adding user: " + user.getName() + ", email: " + user.getEmail() + ", role: " + user.getRole());
         db.collection(COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(docRef -> {
+                    Log.d(TAG, "User added successfully with ID: " + docRef.getId());
                     user.setDocumentId(docRef.getId());
                     callback.onSuccess(user);
                 })
-                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error adding user", e);
+                    callback.onError(e.getMessage());
+                });
     }
 
     public void updateUser(User user, OperationCallback callback) {

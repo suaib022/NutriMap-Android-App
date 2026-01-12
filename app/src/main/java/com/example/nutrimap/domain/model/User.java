@@ -1,5 +1,7 @@
 package com.example.nutrimap.domain.model;
 
+import com.google.firebase.firestore.Exclude;
+
 public class User {
     private int id;
     private String documentId; // Firestore document ID
@@ -61,6 +63,7 @@ public class User {
     public String getBranchId() { return branchId; }
     public void setBranchId(String branchId) { this.branchId = branchId; }
 
+    @Exclude
     public String getDocumentId() { return documentId; }
     public void setDocumentId(String documentId) { this.documentId = documentId; }
 

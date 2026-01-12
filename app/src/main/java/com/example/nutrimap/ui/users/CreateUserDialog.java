@@ -137,9 +137,14 @@ public class CreateUserDialog extends DialogFragment {
                 user.setImagePath(selectedImageBase64);
             }
 
+            // Disable button to prevent double-submission
+            buttonSave.setEnabled(false);
+            android.util.Log.d("CreateUserDialog", "Attempting to create user: " + name + ", " + email + ", " + role);
+
             UserRepository.getInstance().addUser(user, new UserRepository.UserCallback() {
                 @Override
                 public void onSuccess(User user) {
+                    android.util.Log.d("CreateUserDialog", "User created successfully: " + user.getDocumentId());
                     if (getContext() != null) {
                         Toast.makeText(requireContext(), R.string.success_saved, Toast.LENGTH_SHORT).show();
                     }
@@ -151,9 +156,11 @@ public class CreateUserDialog extends DialogFragment {
 
                 @Override
                 public void onError(String message) {
+                    android.util.Log.e("CreateUserDialog", "Error creating user: " + message);
                     if (getContext() != null) {
-                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Error: " + message, Toast.LENGTH_LONG).show();
                     }
+                    buttonSave.setEnabled(true);
                 }
             });
         });
